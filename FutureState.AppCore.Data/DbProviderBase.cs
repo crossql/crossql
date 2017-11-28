@@ -33,7 +33,7 @@ namespace FutureState.AppCore.Data
         public bool CheckIfTableExists(string tableName) => CheckIfTableExistsAsync(tableName).Result;
 
         public abstract Task<bool> CheckIfTableExistsAsync(string tableName);
-        
+
         /// <summary>
         ///     Create a new record based on a Model
         /// </summary>
@@ -86,6 +86,43 @@ namespace FutureState.AppCore.Data
         public void CreateDatabase() => CreateDatabaseAsync().Wait();
 
         public abstract Task CreateDatabaseAsync();
+
+
+        /// <summary>
+        ///     Update the record if it doesn't exist, otherwise create a new one.
+        /// </summary>
+        /// <typeparam name="TModel">Model type</typeparam>
+        /// <param name="model">Model Object to create or update</param>
+        public void CreateOrUpdate<TModel>(TModel model) where TModel : class, new() => CreateOrUpdateAsync(model, new AutoDbMapper<TModel>()).Wait();
+
+
+        /// <summary>
+        ///     Update the record if it doesn't exist, otherwise create a new one.
+        /// </summary>
+        /// <typeparam name="TModel">Model type</typeparam>
+        /// <param name="model">Model Object to create or update</param>
+        /// <param name="dbMapper">Used to map the data in the model object to parameters to be used in database calls</param>
+        public void CreateOrUpdate<TModel>(TModel model, IDbMapper<TModel> dbMapper) where TModel : class, new() => CreateOrUpdateAsync(model, dbMapper).Wait();
+
+
+        /// <summary>
+        ///     Update the record if it doesn't exist, otherwise create a new one.
+        /// </summary>
+        /// <typeparam name="TModel">Model type</typeparam>
+        /// <param name="model">Model Object to create or update</param>
+        public Task CreateOrUpdateAsync<TModel>(TModel model) where TModel : class, new() => CreateOrUpdateAsync(model, new AutoDbMapper<TModel>());
+
+
+        /// <summary>
+        ///     Update the record if it doesn't exist, otherwise create a new one.
+        /// </summary>
+        /// <typeparam name="TModel">Model type</typeparam>
+        /// <param name="model">Model Object to create or update</param>
+        /// <param name="dbMapper">Used to map the data in the model object to parameters to be used in database calls</param>
+        public abstract Task CreateOrUpdateAsync<TModel>(TModel model,
+            IDbMapper<TModel> dbMapper)
+            where TModel : class, new();
+
         public string DatabaseName { get; protected set; }
 
         /// <summary>
@@ -127,7 +164,7 @@ namespace FutureState.AppCore.Data
         public void ExecuteNonQuery(string commandText, IDictionary<string, object> parameters) => ExecuteNonQueryAsync(commandText, parameters).Wait();
 
         // Used For Updates and Deletes
-        public Task ExecuteNonQueryAsync(string commandText)=>ExecuteNonQueryAsync(commandText, new Dictionary<string, object>());
+        public Task ExecuteNonQueryAsync(string commandText) => ExecuteNonQueryAsync(commandText, new Dictionary<string, object>());
 
         public abstract Task ExecuteNonQueryAsync(string commandText, IDictionary<string, object> parameters);
 
@@ -136,7 +173,7 @@ namespace FutureState.AppCore.Data
         public TResult ExecuteReader<TResult>(string commandText, IDictionary<string, object> parameters, Func<IDbReader, TResult> readerMapper) => ExecuteReaderAsync(commandText, parameters, readerMapper).Result;
 
         // Used for Finds and Gets
-        public Task<TResult> ExecuteReaderAsync<TResult>(string commandText,  Func<IDbReader, TResult> readerMapper) => ExecuteReaderAsync(commandText, new Dictionary<string, object>(), readerMapper);
+        public Task<TResult> ExecuteReaderAsync<TResult>(string commandText, Func<IDbReader, TResult> readerMapper) => ExecuteReaderAsync(commandText, new Dictionary<string, object>(), readerMapper);
 
         public abstract Task<TResult> ExecuteReaderAsync<TResult>(string commandText,
             IDictionary<string, object> parameters, Func<IDbReader, TResult> readerMapper);
@@ -161,6 +198,10 @@ namespace FutureState.AppCore.Data
         /// <returns>IEnumerable model</returns>
         public IDbQuery<TModel> Query<TModel>() where TModel : class, new() => new DbQuery<TModel>(this, new AutoDbMapper<TModel>());
 
+        public void RunInTransaction(Action<IDataModifier> transaction) => RunInTransactionAsync(transaction).Wait();
+
+        public abstract Task RunInTransactionAsync(Action<IDataModifier> dbChange);
+
         /// <summary>
         ///     Query the Database for ALL records.
         /// </summary>
@@ -170,10 +211,6 @@ namespace FutureState.AppCore.Data
         /// <returns>IEnumerable model</returns>
         public IDbScalar<TModel, TReturnType> Scalar<TModel, TReturnType>(Expression<Func<TModel, TReturnType>> propertyExpression)
             where TModel : class, new() => new DbScalar<TModel, TReturnType>(this, propertyExpression);
-
-        public void RunInTransaction(Action<IDbChange> transaction) => RunInTransactionAsync(transaction).Wait();
-
-        public abstract Task RunInTransactionAsync(Action<IDbChange> dbChange);
 
         /// <summary>
         ///     UpdateAsync the Database Record of a specified model.
@@ -221,66 +258,6 @@ namespace FutureState.AppCore.Data
 
             await ExecuteNonQueryAsync(commandText, commandParams).ConfigureAwait(false);
             await UpdateManyToManyRelationsAsync(model, tableName, dbMapper).ConfigureAwait(false);
-        }
-
-
-
-
-        /// <summary>
-        ///     Update the record if it doesn't exist, otherwise create a new one.
-        /// </summary>
-        /// <typeparam name="TModel">Model type</typeparam>
-        /// <param name="model">Model Object to create or update</param>
-        public void CreateOrUpdate<TModel>(TModel model) where TModel : class, new() => CreateOrUpdateAsync(model, new AutoDbMapper<TModel>()).Wait();
-
-
-        /// <summary>
-        ///     Update the record if it doesn't exist, otherwise create a new one.
-        /// </summary>
-        /// <typeparam name="TModel">Model type</typeparam>
-        /// <param name="model">Model Object to create or update</param>
-        /// <param name="dbMapper">Used to map the data in the model object to parameters to be used in database calls</param>
-        public void CreateOrUpdate<TModel>(TModel model, IDbMapper<TModel> dbMapper) where TModel : class, new() => CreateOrUpdateAsync(model, dbMapper).Wait();
-
-
-        /// <summary>
-        ///     Update the record if it doesn't exist, otherwise create a new one.
-        /// </summary>
-        /// <typeparam name="TModel">Model type</typeparam>
-        /// <param name="model">Model Object to create or update</param>
-        public Task CreateOrUpdateAsync<TModel>(TModel model) where TModel : class, new() => CreateOrUpdateAsync(model, new AutoDbMapper<TModel>());
-
-
-        /// <summary>
-        ///     Update the record if it doesn't exist, otherwise create a new one.
-        /// </summary>
-        /// <typeparam name="TModel">Model type</typeparam>
-        /// <param name="model">Model Object to create or update</param>
-        /// <param name="dbMapper">Used to map the data in the model object to parameters to be used in database calls</param>
-        public abstract Task CreateOrUpdateAsync<TModel>(TModel model,
-            IDbMapper<TModel> dbMapper)
-            where TModel : class, new();
-
-        //private static bool IsGenericList(Type type)
-        //{
-        //        .Any(i => i.GetGenericTypeDefinition() == typeof(ICollection<>));
-        //        .Where(i => i.IsConstructedGenericType)
-        //    return type.GetTypeInfo().ImplementedInterfaces
-        //        throw new ArgumentNullException("type");
-        //    if (type == null)
-        //}
-
-        #region DbConfiguration Region
-
-
-
-        #endregion
-
-        private static string GetJoinTableName(string tableName, string joinTableName)
-        {
-            var names = new[] {tableName, joinTableName};
-            Array.Sort(names, StringComparer.CurrentCulture);
-            return string.Join("_", names);
         }
 
         /// <summary>
@@ -346,5 +323,21 @@ namespace FutureState.AppCore.Data
                 }
             }
         }
+
+        private static string GetJoinTableName(string tableName, string joinTableName)
+        {
+            var names = new[] {tableName, joinTableName};
+            Array.Sort(names, StringComparer.CurrentCulture);
+            return string.Join("_", names);
+        }
+        //}
+        //    if (type == null)
+        //        throw new ArgumentNullException("type");
+        //    return type.GetTypeInfo().ImplementedInterfaces
+        //        .Where(i => i.IsConstructedGenericType)
+        //        .Any(i => i.GetGenericTypeDefinition() == typeof(ICollection<>));
+        //{
+
+        //private static bool IsGenericList(Type type)
     }
 }

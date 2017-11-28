@@ -8,7 +8,7 @@ using FutureState.AppCore.Data.Extensions;
 
 namespace FutureState.AppCore.Data.Transactions
 {
-    public abstract class TransactionBuilder : IDbChange
+    public abstract class TransactionBuilder : IDataModifier
     {
         protected readonly IDialect Dialect;
 

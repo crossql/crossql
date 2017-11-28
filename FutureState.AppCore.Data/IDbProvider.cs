@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace FutureState.AppCore.Data
 {
-    public interface IDbProvider : IDbChange
+    public interface IDbProvider : IDataModifier
     {
         string DatabaseName { get; }
         IDialect Dialect { get; }
@@ -37,10 +37,9 @@ namespace FutureState.AppCore.Data
         string LoadSqlFile<TDbProvider>(string fileName);
         Task<string> LoadSqlFileAsync<TDbProvider>(string fileName);
         IDbQuery<TModel> Query<TModel>() where TModel : class, new();
-        void RunInTransaction(Action<IDbChange> transaction);
-        Task RunInTransactionAsync(Action<IDbChange> dbChange);
+        void RunInTransaction(Action<IDataModifier> transaction);
+        Task RunInTransactionAsync(Action<IDataModifier> dbChange);
         IDbScalar<TModel, TReturnType> Scalar<TModel, TReturnType>(Expression<Func<TModel, TReturnType>> propertyExpression) where TModel : class, new();
-        void Update<TModel>(TModel model) where TModel : class, new();
         Task UpdateAsync<TModel>(TModel model) where TModel : class, new();
         Task UpdateAsync<TModel>(TModel model, IDbMapper<TModel> dbMapper) where TModel : class, new();
     }

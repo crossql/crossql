@@ -172,7 +172,7 @@ namespace FutureState.AppCore.Data.Sqlite
             }
         }
 
-        public override async Task RunInTransactionAsync(Action<IDbChange> dbChange)
+        public override async Task RunInTransactionAsync(Action<IDataModifier> dbChange)
         {
 
             var transaction = new SQLiteTransactionBuilder(Dialect);
