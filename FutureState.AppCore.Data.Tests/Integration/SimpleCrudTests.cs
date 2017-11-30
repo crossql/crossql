@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System.Collections.Generic;
+using System.Diagnostics;
 using FluentAssertions;
 using FutureState.AppCore.Data.Tests.Helpers.Fixtures;
 using FutureState.AppCore.Data.Tests.Helpers.Models;
@@ -34,7 +35,7 @@ namespace FutureState.AppCore.Data.Tests.Integration
             actualAuthor.ShouldBeEquivalentTo(expectedAuthor);
 
             // Delete
-            db.Delete<AuthorModel>( x => x.Id == expectedAuthor.Id);
+            db.Delete<AuthorModel>(x => x.Id == expectedAuthor.Id);
 
             // Assert Delete
             actualAuthor = db.Query<AuthorModel>().Where(a => a.Email == expectedAuthor.Email).SingleOrDefault();
@@ -145,7 +146,7 @@ namespace FutureState.AppCore.Data.Tests.Integration
             // delete
             db.RunInTransaction(transaction =>
             {
-                transaction.Delete<AutomobileModel>(a=>a.Vin == motorcycle.Vin);
+                transaction.Delete<AutomobileModel>(a => a.Vin == motorcycle.Vin);
                 transaction.Delete<AutomobileModel>(a => a.Vin == car.Vin);
             });
 
@@ -159,6 +160,8 @@ namespace FutureState.AppCore.Data.Tests.Integration
         [Test, TestCaseSource(nameof(DbProviders))]
         public void Should_Perform_Faster_When_Run_In_Transaction(IDbProvider db)
         {
+            Trace.WriteLine(TraceObjectGraphInfo(db));
+
             // setup
             var carWatch = new Stopwatch();
             var bikeWatch = new Stopwatch();
@@ -186,13 +189,34 @@ namespace FutureState.AppCore.Data.Tests.Integration
             }
             bikeWatch.Stop();
             carWatch.ElapsedTicks.Should().BeLessThan(bikeWatch.ElapsedTicks);
-           
+
             // assert record count
             var vehicleCount = db.Query<AutomobileModel>().ToList().Count;
             vehicleCount.Should().Be(1980);
 
             Trace.WriteLine($"Non Transaction: {bikeWatch.Elapsed.ToString(@"hh\:mm\:ss")} \t(Ticks {bikeWatch.ElapsedTicks})");
             Trace.WriteLine($"Transaction: {carWatch.Elapsed.ToString(@"hh\:mm\:ss")} \t\t(Ticks {carWatch.ElapsedTicks})");
+        }
+
+        [Test, TestCaseSource(nameof(DbProviders))]
+        public void Should_Create_Records_With_AutoIncrement(IDbProvider db)
+        {
+            Trace.WriteLine(TraceObjectGraphInfo(db));
+
+            // setup
+            var foos = new List<FooModel>();
+            for (var i = 1; i < 21; i++)
+            {
+                foos.Add(new FooModel { Name = $"Name-{i}" });
+            }
+
+            // execute
+            foreach (var foo in foos)
+            {
+                db.Create(foo);
+            }
+            var actualFoos = db.Query<FooModel>().ToList();
+            actualFoos.Count.Should().Be(20);
         }
     }
 }

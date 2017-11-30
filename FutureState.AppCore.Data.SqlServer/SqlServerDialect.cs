@@ -4,6 +4,7 @@ namespace FutureState.AppCore.Data.SqlServer
 {
     public class SqlServerDialect : IDialect
     {
+        public DatabaseType DatabaseType => DatabaseType.SqlServer;
         public string UseDatabase => "USE [{0}]";
 
         public string CreateTable => "CREATE TABLE [{0}] ({1});";
@@ -143,5 +144,6 @@ END;";
         public string OrderBy => "ORDER BY {0} {1}";
 
         public string Truncate => "TRUNCATE TABLE {0}";
+        public string AutoIncrement => "IDENTITY({0},{1})";
     }
 }

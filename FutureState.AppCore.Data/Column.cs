@@ -2,18 +2,21 @@
 using System.Collections.Generic;
 using FutureState.AppCore.Data.Constraints;
 using FutureState.AppCore.Data.Exceptions;
+using ForeignKeyConstraint = FutureState.AppCore.Data.Constraints.ForeignKeyConstraint;
+using UniqueConstraint = FutureState.AppCore.Data.Constraints.UniqueConstraint;
 
 namespace FutureState.AppCore.Data
 {
     public class Column
     {
+        public static IList<KeyValuePair<Type, string>> CustomTypes = new List<KeyValuePair<Type, string>>();
         public readonly IList<IConstraint> Constraints;
         public readonly string Name;
         public readonly int Precision;
-        public readonly Type Type;
+        public Type Type;
         private readonly IDialect _dialect;
+
         private readonly string _tableName;
-        public static IList<KeyValuePair<Type, string>> CustomTypes = new List<KeyValuePair<Type, string>>();
 
         public Column(IDialect dialect, string name, Type type, string tableName, int precision)
         {
@@ -25,9 +28,40 @@ namespace FutureState.AppCore.Data
             _tableName = tableName;
         }
 
-        public Column PrimaryKey()
+        public Column AsCustomType(string dialectValue)
         {
-            Constraints.Add(new PrimaryKeyConstraint(_dialect));
+            CustomTypes.Add(new KeyValuePair<Type, string>(Type, dialectValue));
+            return this;
+        }
+
+        public Column AutoIncrement(int start, int increment)
+        {
+            if (_dialect.DatabaseType == DatabaseType.Sqlite)
+            {
+                // sqlite requires autoincrementing fields to be of type 'long', 
+                // so we're going to be a little helpful and swapping the it on the fly.
+                if (Type == typeof(int) || Type == typeof(byte) || Type == typeof(short))
+                {
+                    Type = typeof(long);
+                }
+            }
+            if (Type != typeof(int) && Type != typeof(byte) && Type != typeof(short) && Type != typeof(long))
+            {
+                throw new ConstraintException("Auto Incrementing fileds must be of one of the following types [byte, short, int, long]");
+            }
+            Constraints.Add(new AutoIncrementConstraint(_dialect, start, increment));
+            return this;
+        }
+
+        public Column Clustered()
+        {
+            Constraints.Add(new ClusteredConstraint(_dialect));
+            return this;
+        }
+
+        public Column Default<T>(T defaultValue)
+        {
+            Constraints.Add(new DefaultConstraint<T>(_dialect, defaultValue));
             return this;
         }
 
@@ -42,6 +76,12 @@ namespace FutureState.AppCore.Data
             Constraints.Add(new ForeignKeyConstraint(_dialect, _tableName, Name, referenceTable, referenceField));
             Constraints.Add(new OnDeleteNoActionConstraint(_dialect));
             Constraints.Add(new OnUpdateNoActionConstraint(_dialect));
+            return this;
+        }
+
+        public Column NonClustered()
+        {
+            Constraints.Add(new NonClusteredConstraint(_dialect));
             return this;
         }
 
@@ -64,94 +104,72 @@ namespace FutureState.AppCore.Data
             return this;
         }
 
-        public Column Unique()
+        public Column PrimaryKey()
         {
-            Constraints.Add(new UniqueConstraint(_dialect));
-            return this;
-        }
-
-        public Column Clustered()
-        {
-            Constraints.Add(new ClusteredConstraint(_dialect));
-            return this;
-        }
-
-        public Column NonClustered()
-        {
-            Constraints.Add(new NonClusteredConstraint(_dialect));
-            return this;
-        }
-
-        public Column Default<T>(T defaultValue)
-        {
-            Constraints.Add(new DefaultConstraint<T>(_dialect, defaultValue));
-            return this;
-        }
-
-        public Column AsCustomType(string dialectValue)
-        {
-            CustomTypes.Add(new KeyValuePair<Type, string>(Type, dialectValue));
+            Constraints.Add(new PrimaryKeyConstraint(_dialect));
             return this;
         }
 
         public override string ToString()
         {
             return Environment.NewLine +
-                    string.Format( _dialect.CreateColumn, Name, GetDataType( Type, Precision ),
-                                    string.Join( " ", Constraints ) );
+                   string.Format(_dialect.CreateColumn, Name, GetDataType(Type, Precision),
+                       string.Join(" ", Constraints));
+        }
+
+        public Column Unique()
+        {
+            Constraints.Add(new UniqueConstraint(_dialect));
+            return this;
         }
 
         private string GetDataType(Type type, int precision)
         {
-            if (type == typeof (String) && precision == 0)
+            if (type == typeof(string) && precision == 0)
                 return _dialect.MaxString;
 
-            if (type == typeof (String))
+            if (type == typeof(string))
                 return string.Format(_dialect.LimitedString, precision);
 
-            if (type == typeof (int) || type == typeof (Int32))
+            if (type == typeof(int) || type == typeof(int))
                 return _dialect.Integer;
 
-            if (type == typeof (Int16))
+            if (type == typeof(short))
                 return _dialect.Int16;
 
-            if (type == typeof (DateTime))
+            if (type == typeof(DateTime))
                 return _dialect.DateTime;
 
-            if (type == typeof (Guid))
+            if (type == typeof(Guid))
                 return _dialect.Guid;
 
-            if (type == typeof (bool))
+            if (type == typeof(bool))
                 return _dialect.Bool;
 
-            if (type == typeof (decimal))
+            if (type == typeof(decimal))
                 return _dialect.Decimal;
 
-            if (type == typeof (byte))
+            if (type == typeof(byte))
                 return _dialect.Byte;
 
-            if (type == typeof (Int64))
+            if (type == typeof(long))
                 return _dialect.Int64;
 
-            if (type == typeof (double) || type == typeof (float))
+            if (type == typeof(double) || type == typeof(float))
                 return _dialect.Double;
 
-            if (type == typeof (byte[]))
+            if (type == typeof(byte[]))
                 return _dialect.ByteArray;
 
-            if (type == typeof (Single))
+            if (type == typeof(float))
                 return _dialect.Single;
 
-            if (type == typeof (TimeSpan))
+            if (type == typeof(TimeSpan))
                 return _dialect.TimeSpan;
 
             foreach (var customType in CustomTypes)
-            {
                 if (type == customType.Key)
-                {
                     return customType.Value;
-                }
-            }
 
             throw new DataTypeNotSupportedException();
         }

@@ -38,6 +38,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Attributes\AutoIncrement.cs" />
     <Compile Include="Attributes\IgnoreAttribute.cs" />
     <Compile Include="Attributes\ManyToManyAttribute.cs" />
     <Compile Include="Attributes\ManyToOneAttribute.cs" />
@@ -45,6 +46,8 @@
     <Compile Include="Attributes\PrimaryKeyAttribute.cs" />
     <Compile Include="AutoModelMapper{TMapTo, TMapFrom}.cs" />
     <Compile Include="Config\TableOptions{TModel}.cs" />
+    <Compile Include="Constraints\AutoIncrementConstraint.cs" />
+    <Compile Include="DatabaseType.cs" />
     <Compile Include="DbQuery{TModel, TJoinTo}.cs" />
     <Compile Include="ClusterType.cs" />
     <Compile Include="Column.cs" />
@@ -65,6 +68,7 @@
     <Compile Include="DbProviderBase.cs" />
     <Compile Include="DbQuery{TModel}.cs" />
     <Compile Include="DbScalar{TModel, TReturnType}.cs" />
+    <Compile Include="Exceptions\ConstraintException.cs" />
     <Compile Include="Exceptions\DuplicateRecordException.cs" />
     <Compile Include="Extensions\DateTimeExtensions.cs" />
     <Compile Include="Extensions\EnumerableExtensions.cs" />
@@ -72,7 +76,7 @@
     <Compile Include="Extensions\TypeExtensions.cs" />
     <Compile Include="Helpers\Inflector.cs" />
     <Compile Include="Config\DbConfiguration.cs" />
-    <Compile Include="IDbChange.cs" />
+    <Compile Include="IDataModifier.cs" />
     <Compile Include="IDbConnectionProvider.cs" />
     <Compile Include="IDbScalar{TModel, TType}.cs" />
     <Compile Include="IModelMapper{TMapTo, TMapFrom}.cs" />

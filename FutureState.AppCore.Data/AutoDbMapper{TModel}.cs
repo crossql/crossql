@@ -30,7 +30,8 @@ namespace FutureState.AppCore.Data
                                    return name == nameof(OneToManyAttribute) ||
                                           name == nameof(ManyToOneAttribute) ||
                                           name == nameof(ManyToManyAttribute) ||
-                                          name == nameof(IgnoreAttribute);
+                                          name == nameof(IgnoreAttribute) ||
+                                          name == nameof(AutoIncrement);
                                })
                            where !ignore
                            select property).ToList());

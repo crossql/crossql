@@ -102,7 +102,9 @@
     <Compile Include="Helpers\Migrations\Migration002.cs" />
     <Compile Include="Helpers\Migrations\Migration001.cs" />
     <Compile Include="Helpers\Migrations\Migration003.cs" />
+    <Compile Include="Helpers\Migrations\Migration004.cs" />
     <Compile Include="Helpers\Models\AutomobileModel.cs" />
+    <Compile Include="Helpers\Models\FooModel.cs" />
     <Compile Include="Helpers\Models\GooseModel.cs" />
     <Compile Include="Helpers\Models\ModelBase.cs" />
     <Compile Include="Helpers\Models\PublisherModel.cs" />

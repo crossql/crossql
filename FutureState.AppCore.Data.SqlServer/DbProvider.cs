@@ -74,7 +74,7 @@ namespace FutureState.AppCore.Data.SqlServer
             return sqlStatement;
         }
 
-        public override async Task RunInTransactionAsync(Action<IDbChange> dbChange)
+        public override async Task RunInTransactionAsync(Action<IDataModifier> dbChange)
         {
             var transaction = new SqlServerTransactionBuilder(Dialect) ;
             dbChange(transaction);

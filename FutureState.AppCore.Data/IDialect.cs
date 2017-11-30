@@ -4,6 +4,7 @@ namespace FutureState.AppCore.Data
 {
     public interface IDialect
     {
+        DatabaseType DatabaseType { get; }
         string UseDatabase { get; }
         string CreateTable { get; }
         string UpdateTable { get; }
@@ -78,5 +79,6 @@ namespace FutureState.AppCore.Data
         string TimeSpan { get; }
         string OrderBy { get; }
         string Truncate { get; }
+        string AutoIncrement { get; }
     }
 }

@@ -2,6 +2,7 @@
 {
     public class SqliteDialect : IDialect
     {
+        public DatabaseType DatabaseType => DatabaseType.Sqlite;
         public string UseDatabase => "";
 
         public string CreateTable => "CREATE TABLE [{0}] ({1});";
@@ -116,7 +117,7 @@
 
         public string Integer => "int";
 
-        public string Int64 => "bigint";
+        public string Int64 => "integer";
 
         public string Int16 => "int";
 
@@ -131,5 +132,6 @@
         public string OrderBy => "ORDER BY {0} {1}";
 
         public string Truncate => "DELETE FROM {0}";
+        public string AutoIncrement => "";
     }
 }

@@ -36,7 +36,8 @@ namespace FutureState.AppCore.Data.Tests.Integration
                 {
                     new Migration001(),
                     new Migration002(),
-                    new Migration003()
+                    new Migration003(),
+                    new Migration004()
                 });
             }
         }
