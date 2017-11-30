@@ -24,7 +24,7 @@ namespace FutureState.AppCore.Data.Tests.Integration
             yield return new SqliteDbProvider(testDbName + ".sqlite3", SetConfig);
         }
 
-        [SetUp]
+        [TestFixtureSetUp]
         public void Setup()
         {
             foreach (var dbProvider in DbProviders())
