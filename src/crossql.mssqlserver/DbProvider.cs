@@ -1,0 +1,199 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Data.SqlClient;
+using System.IO;
+using System.Linq;
+using System.Reflection;
+using System.Threading.Tasks;
+using crossql.Config;
+using crossql.Extensions;
+using crossql.Helpers;
+
+namespace crossql.mssqlserver
+{
+    public class DbProvider : DbProviderBase
+    {
+        private static string _useStatement;
+        private readonly IDbConnectionProvider _connectionProvider;
+        private IDialect _dialect;
+
+        public DbProvider(IDbConnectionProvider connectionProvider, string databaseName)
+        {
+            DatabaseName = databaseName;
+            _connectionProvider = connectionProvider;
+            _useStatement = string.Format(Dialect.UseDatabase, databaseName);
+        }
+
+        public DbProvider(IDbConnectionProvider connectionProvider, string databaseName, Action<DbConfiguration> dbConfig):base(dbConfig)
+        {
+            DatabaseName = databaseName;
+            _connectionProvider = connectionProvider;
+            _useStatement = string.Format(Dialect.UseDatabase, databaseName);
+        }
+
+        public override async Task CreateOrUpdate<TModel>(TModel model, IDbMapper<TModel> dbMapper)
+        {
+            var modelType = typeof(TModel);
+            var tableName = typeof(TModel).GetTypeInfo().Name.BuildTableName();
+            var fieldNameList = dbMapper.FieldNames;
+            var commandParams = dbMapper.BuildDbParametersFrom(model);
+
+            var insertParams = "@" + string.Join(",@", fieldNameList);
+            var insertFields = string.Join(",", fieldNameList);
+            var updateFields = string.Join(",", fieldNameList.Select(field => string.Format("[{0}] = @{0}", field)).ToList());
+            var whereClause = string.Format(Dialect.Where, string.Format("{0} = @{0}", modelType.GetPrimaryKeyName()));
+
+            var commandText = string.Format(Dialect.CreateOrUpdate, 
+                tableName,
+                updateFields,
+                whereClause,
+                insertFields,
+                insertParams);
+
+            await ExecuteNonQuery(commandText, commandParams).ConfigureAwait(false);
+            await UpdateManyToManyRelationsAsync(model, tableName, dbMapper).ConfigureAwait(false);
+        }
+
+        public sealed override IDialect Dialect => _dialect ?? (_dialect = new SqlServerDialect());
+
+        public override async Task<string> LoadSqlFile<TDbProvider>(string fileName)
+        {
+            var sqlStatement = string.Empty;
+
+            using (var resourceStream = Assembly.GetExecutingAssembly().GetManifestResourceStream(fileName))
+            {
+                if (resourceStream != null)
+                {
+                    sqlStatement = await new StreamReader(resourceStream).ReadToEndAsync().ConfigureAwait(false);
+                }
+            }
+
+            return sqlStatement;
+        }
+
+        public override async Task RunInTransaction(Func<IDataModifier,Task> dbChange)
+        {
+            //var transaction = new SqlServerTransactionBuilder(Dialect) ;
+            //dbChange(transaction);
+            //using (var connection = await _connectionProvider.GetOpenConnectionAsync().ConfigureAwait(false))
+            //using(var trans = connection.BeginTransaction())
+            //using (var command = connection.CreateCommand())
+            //{
+            //    command.Transaction = trans;
+            //    try
+            //    {
+            //        command.CommandType = CommandType.Text;
+            //        foreach (var cmd in transaction.Commands)
+            //        {
+            //            command.CommandText = _useStatement + cmd.CommandText;
+            //            cmd.CommandParameters.ForEach(parameter =>
+            //            {
+            //                command.Parameters.Add(new SqlParameter(parameter.Key, parameter.Value ?? DBNull.Value));
+            //            });
+            //            command.ExecuteNonQuery();
+            //            command.Parameters.Clear();
+            //        }
+            //        trans.Commit();
+            //    }
+            //    catch
+            //    {
+            //        trans?.Rollback();
+            //        throw;
+            //    }
+            //}
+        }
+
+        public override async Task<bool> CheckIfDatabaseExists() => await ExecuteScalarAsync<int>("", string.Format(Dialect.CheckDatabaseExists, DatabaseName)).ConfigureAwait(false) == 1;
+
+        public override Task CreateDatabase() => ExecuteNonQueryAsync("", string.Format(Dialect.CreateDatabase, DatabaseName));
+
+        public override Task DropDatabase() => ExecuteNonQueryAsync("", string.Format(Dialect.DropDatabase, DatabaseName));
+
+        public override async Task<bool> CheckIfTableExists(string tableName) => await ExecuteScalar<int>(string.Format(Dialect.CheckTableExists, tableName)).ConfigureAwait(false) == 1;
+
+        public override async Task<bool> CheckIfTableColumnExists(string tableName, string columnName) => await ExecuteScalar<int>(string.Format(Dialect.CheckTableColumnExists, tableName, columnName)).ConfigureAwait(false) == 1;
+
+        #region ExecuteReader
+
+        public override Task<TResult> ExecuteReader<TResult>(string commandText, IDictionary<string, object> parameters, Func<IDataReader, TResult> readerMapper) => ExecuteReader(_useStatement, commandText, parameters, readerMapper);
+
+        private async Task<TResult> ExecuteReader<TResult>(string useStatement, string commandText, IEnumerable<KeyValuePair<string, object>> parameters, Func<IDataReader, TResult> readerMapper)
+        {
+            using (var connection = await _connectionProvider.GetOpenConnectionAsync().ConfigureAwait(false))
+            using (var command = connection.CreateCommand())
+            {
+                command.CommandType = CommandType.Text;
+                command.CommandText = useStatement + commandText;
+                parameters.ForEach(parameter => command.Parameters.Add(new SqlParameter(parameter.Key, parameter.Value ?? DBNull.Value)));
+                TResult result;
+                using (var reader = command.ExecuteReader())
+                {
+                    result =  readerMapper(reader);
+                }
+                return result;
+            }
+        }
+
+        #endregion
+
+        #region ExecuteNonQuery
+
+        public override Task ExecuteNonQuery(string commandText, IDictionary<string, object> parameters) => ExecuteNonQueryAsync(_useStatement, commandText, parameters);
+
+        private Task ExecuteNonQueryAsync(string useStatement, string commandText) => ExecuteNonQueryAsync(useStatement, commandText, new Dictionary<string, object>());
+
+        private async Task ExecuteNonQueryAsync(string useStatement, string commandText, IEnumerable<KeyValuePair<string, object>> parameters)
+        {
+            using (var connection = await _connectionProvider.GetOpenConnectionAsync().ConfigureAwait(false))
+            using (var command = connection.CreateCommand())
+            {
+                command.CommandType = CommandType.Text;
+                command.CommandText = useStatement + commandText;
+                parameters.ForEach(
+                    parameter =>
+                        command.Parameters.Add(new SqlParameter(parameter.Key, parameter.Value ?? DBNull.Value)));
+
+                command.ExecuteNonQuery();
+            }
+        }
+
+        #endregion
+
+        #region ExecuteScalar
+
+        public override Task<TKey> ExecuteScalar<TKey>(string commandText, IDictionary<string, object> parameters) => ExecuteScalarAsync<TKey>(_useStatement, commandText, parameters);
+
+        private Task<TKey> ExecuteScalarAsync<TKey>(string useStatement, string commandText) => ExecuteScalarAsync<TKey>(useStatement, commandText, new Dictionary<string, object>());
+
+        private async Task<TKey> ExecuteScalarAsync<TKey>(string useStatement, string commandText, IEnumerable<KeyValuePair<string, object>> parameters)
+        {
+            using (var connection = await _connectionProvider.GetOpenConnectionAsync().ConfigureAwait(false))
+            using (var command = connection.CreateCommand())
+            {
+                command.CommandType = CommandType.Text;
+                command.CommandText = useStatement + commandText;
+                parameters.ForEach(
+                    parameter =>
+                        command.Parameters.Add(new SqlParameter(parameter.Key, parameter.Value ?? DBNull.Value)));
+
+                var result = command.ExecuteScalar();
+                if (typeof(TKey) == typeof(int))
+                    return (TKey)(result ?? 0);
+
+                if (typeof(TKey) == typeof(DateTime))
+                {
+                    if (!DateTime.TryParse(result.ToString(), out var _))
+                    {
+                        return (TKey)(object)DateTimeHelper.MinSqlValue;
+                    }
+
+                    return (TKey)result;
+                }
+
+                return (TKey)result;
+            }
+        }
+        #endregion
+    }
+}

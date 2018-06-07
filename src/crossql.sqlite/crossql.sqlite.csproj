@@ -1,0 +1,13 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2.0</TargetFrameworks>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\crossql\crossql.csproj" />
+    <PackageReference Include="Microsoft.Data.SQLite" Version="2.1.0" />
+  </ItemGroup>
+
+</Project>
