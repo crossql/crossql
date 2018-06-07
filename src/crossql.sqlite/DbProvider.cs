@@ -16,14 +16,14 @@ namespace crossql.sqlite
         private readonly bool _enforceForeignKeys = true;
         private readonly string _sqliteDatabasePath;
 
-        public DbProvider(string databaseName, Action<DbConfiguration> config) : base(config)
+        public DbProvider(IDbConnectionProvider connectionProvider, string databaseName, Action<DbConfiguration> config) : base(connectionProvider, config)
         {
             DatabaseName = databaseName;
             _sqliteDatabasePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), databaseName);
             _connectionProvider = new DbConnectionProvider(_sqliteDatabasePath);
         }
 
-        public DbProvider(string databaseName, SqliteSettings settings, Action<DbConfiguration> config) : base(config)
+        public DbProvider(IDbConnectionProvider connectionProvider, string databaseName, SqliteSettings settings, Action<DbConfiguration> config) : base(connectionProvider, config)
         {
             DatabaseName = databaseName;
             _enforceForeignKeys = settings.EnforceForeignKeys;
@@ -31,14 +31,14 @@ namespace crossql.sqlite
             _connectionProvider = new DbConnectionProvider(_sqliteDatabasePath, settings);
         }
 
-        public DbProvider(string databaseName)
+        public DbProvider(IDbConnectionProvider connectionProvider, string databaseName):base(connectionProvider)
         {
             DatabaseName = databaseName;
             _sqliteDatabasePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), databaseName);
             _connectionProvider = new DbConnectionProvider(_sqliteDatabasePath);
         }
 
-        public DbProvider(string databaseName, SqliteSettings settings)
+        public DbProvider(IDbConnectionProvider connectionProvider, string databaseName, SqliteSettings settings):base(connectionProvider)
         {
             DatabaseName = databaseName;
             _enforceForeignKeys = settings.EnforceForeignKeys;
@@ -168,16 +168,14 @@ namespace crossql.sqlite
             }
         }
 
-        public override async Task RunInTransaction(Func<IDataModifier,Task> dbChange)
+        public override async Task RunInTransaction(Func<ITransactionable,Task> dbChange)
         {
-
-            //var transaction = new SQLiteTransactionBuilder(Dialect);
             //dbChange(transaction);
             //using (var connection = await _connectionProvider.GetOpenConnectionAsync().ConfigureAwait(false))
             //using (var trans = connection.BeginTransaction())
             //using (var command = connection.CreateCommand())
             //{
-            //    command.Transaction = trans;
+            //    command.TransactionBase = trans;
             //    try
             //    {
             //        command.CommandType = CommandType.Text;

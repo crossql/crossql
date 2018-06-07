@@ -7,6 +7,7 @@ using crossql.tests.Helpers.Migrations;
 using crossql.tests.Helpers.Models;
 using NUnit.Framework;
 using SqlDbConnectionProvider = crossql.mssqlserver.DbConnectionProvider;
+using SqliteConnectionProvider = crossql.sqlite.DbConnectionProvider;
 using SqlDbProvider = crossql.mssqlserver.DbProvider;
 using SqliteDbProvider = crossql.sqlite.DbProvider;
 namespace crossql.tests.Integration
@@ -22,8 +23,10 @@ namespace crossql.tests.Integration
                 sqlServerConnection.ConnectionString,
                 sqlServerConnection.ProviderName);
 
+            var sqliteConnectionProvider = new SqliteConnectionProvider(testDbName);
+
             yield return new SqlDbProvider(sqlDbConnectionProvider, testDbName,SetConfig);
-            yield return new SqliteDbProvider($"{testDbName}.sqlite3", SetConfig);
+            yield return new SqliteDbProvider(sqliteConnectionProvider,$"{testDbName}.sqlite3", SetConfig);
         }
 
         [OneTimeSetUp]
@@ -33,12 +36,10 @@ namespace crossql.tests.Integration
             {
                 Trace.WriteLine(TraceObjectGraphInfo(dbProvider));
                 var migrationRunner = new MigrationRunner(dbProvider);
-                if (await dbProvider.CheckIfDatabaseExists())
-                {
-                    // drop the database before running the tests again
-                    await migrationRunner.DropDatabase();
-                }
+
+                // drop the database before running the tests again
                 await migrationRunner.DropDatabase();
+                
                 await migrationRunner.RunAll(SystemRole.Server, new List<CrossqlMigration>
                 {
                     new Migration001(),

@@ -5,11 +5,10 @@ using System.Threading.Tasks;
 
 namespace crossql
 {
-    public interface IDataModifier
+    public interface ITransactionable
     {
         Task Create<TModel>(TModel model) where TModel : class, new();
         Task Create<TModel>(TModel model, IDbMapper<TModel> dbMapper) where TModel : class, new();
-        Task CreateDatabase();
         Task CreateOrUpdate<TModel>(TModel model) where TModel : class, new();
         Task CreateOrUpdate<TModel>(TModel model, IDbMapper<TModel> dbMapper) where TModel : class, new();
         Task Delete<TModel>(Expression<Func<TModel, bool>> expression) where TModel : class, new();
