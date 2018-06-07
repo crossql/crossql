@@ -4,7 +4,6 @@ using System.Reflection;
 using System.Threading.Tasks;
 using crossql.Config;
 using crossql.Extensions;
-using crossql;
 
 namespace crossql.sqlite
 {
@@ -13,9 +12,9 @@ namespace crossql.sqlite
         protected const string RootSqlScriptPath = "FutureState.AppCore.Data.Sqlite.SqlScripts.";
         private IDialect _dialect;
 
-        protected SqliteDbProviderBase(IDbConnectionProvider connectionProvider):base(connectionProvider) { }
+        protected SqliteDbProviderBase() { }
 
-        protected SqliteDbProviderBase(IDbConnectionProvider connectionProvider, Action<DbConfiguration> config) : base(connectionProvider, config) { }
+        protected SqliteDbProviderBase(Action<DbConfiguration> config) : base(config) { }
 
         public sealed override IDialect Dialect => _dialect ?? (_dialect = new SqliteDialect());
 

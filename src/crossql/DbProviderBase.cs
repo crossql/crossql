@@ -13,14 +13,11 @@ namespace crossql
 {
     public abstract class DbProviderBase : IDbProvider
     {
-        private readonly IDbConnectionProvider _connectionProvider;
-
-        protected DbProviderBase(IDbConnectionProvider connectionProvider)
+        protected DbProviderBase()
         {
-            _connectionProvider = connectionProvider;
         }
 
-        protected DbProviderBase(IDbConnectionProvider connectionProvider, Action<DbConfiguration> config) : this(connectionProvider)
+        protected DbProviderBase( Action<DbConfiguration> config)
         {
             var dbConfig = new DbConfiguration(this);
             config(dbConfig);

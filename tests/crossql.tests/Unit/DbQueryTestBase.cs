@@ -7,7 +7,7 @@ namespace crossql.tests.Unit
         {
             var cp = new mssqlserver.DbConnectionProvider(null, null);
             var sqlServerDbProvider = new mssqlserver.DbProvider(cp, "foo");
-            var sqliteDbProvider = new sqlite.DbProvider(cp,"foo");
+            var sqliteDbProvider = new sqlite.DbProvider("foo");
 
             yield return sqlServerDbProvider;
             yield return sqliteDbProvider;

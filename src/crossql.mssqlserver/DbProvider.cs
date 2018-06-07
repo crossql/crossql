@@ -18,14 +18,14 @@ namespace crossql.mssqlserver
         private readonly IDbConnectionProvider _connectionProvider;
         private IDialect _dialect;
 
-        public DbProvider(IDbConnectionProvider connectionProvider, string databaseName) : base(connectionProvider)
+        public DbProvider(IDbConnectionProvider connectionProvider, string databaseName) 
         {
             DatabaseName = databaseName;
             _connectionProvider = connectionProvider;
             _useStatement = string.Format(Dialect.UseDatabase, databaseName);
         }
 
-        public DbProvider(IDbConnectionProvider connectionProvider, string databaseName, Action<DbConfiguration> dbConfig) : base(connectionProvider, dbConfig)
+        public DbProvider(IDbConnectionProvider connectionProvider, string databaseName, Action<DbConfiguration> dbConfig) : base(dbConfig)
         {
             DatabaseName = databaseName;
             _connectionProvider = connectionProvider;

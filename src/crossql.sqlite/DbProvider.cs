@@ -17,14 +17,14 @@ namespace crossql.sqlite
         private readonly bool _enforceForeignKeys = true;
         private readonly string _sqliteDatabasePath;
 
-        public DbProvider(IDbConnectionProvider connectionProvider, string databaseName, Action<DbConfiguration> config) : base(connectionProvider, config)
+        public DbProvider(string databaseName, Action<DbConfiguration> config) : base(config)
         {
             DatabaseName = databaseName;
             _sqliteDatabasePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), databaseName);
             _connectionProvider = new DbConnectionProvider(_sqliteDatabasePath);
         }
 
-        public DbProvider(IDbConnectionProvider connectionProvider, string databaseName, SqliteSettings settings, Action<DbConfiguration> config) : base(connectionProvider, config)
+        public DbProvider(string databaseName, SqliteSettings settings, Action<DbConfiguration> config) : base(config)
         {
             DatabaseName = databaseName;
             _enforceForeignKeys = settings.EnforceForeignKeys;
@@ -32,14 +32,14 @@ namespace crossql.sqlite
             _connectionProvider = new DbConnectionProvider(_sqliteDatabasePath, settings);
         }
 
-        public DbProvider(IDbConnectionProvider connectionProvider, string databaseName):base(connectionProvider)
+        public DbProvider(string databaseName)
         {
             DatabaseName = databaseName;
             _sqliteDatabasePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), databaseName);
             _connectionProvider = new DbConnectionProvider(_sqliteDatabasePath);
         }
 
-        public DbProvider(IDbConnectionProvider connectionProvider, string databaseName, SqliteSettings settings):base(connectionProvider)
+        public DbProvider(string databaseName, SqliteSettings settings)
         {
             DatabaseName = databaseName;
             _enforceForeignKeys = settings.EnforceForeignKeys;

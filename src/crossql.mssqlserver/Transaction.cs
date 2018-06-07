@@ -48,11 +48,11 @@ namespace crossql.mssqlserver
         private async Task ExecuteNonQuery(string useStatement, string commandText, IDictionary<string, object> parameters)
         {
             await Task.Run(() => { 
-                if (_command.Transaction != null) _command.Transaction = _transaction;
+                if (_transaction != null) _command.Transaction = _transaction;
 
                 _command.CommandType = CommandType.Text;
                 _command.CommandText = useStatement + commandText;
-                Parallel.ForEach(parameters, param => _command.Parameters.Add(new SqlParameter(param.Key, param.Value ?? DBNull.Value)));
+                parameters.ForEach(param=> _command.Parameters.Add(new SqlParameter(param.Key, param.Value ?? DBNull.Value)));
             
                 _command.ExecuteNonQuery();
             });
