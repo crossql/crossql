@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.Common;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -10,14 +11,14 @@ using crossql.Extensions;
 
 namespace crossql
 {
-    public class TransactionBase : ITransactionable, IDisposable
+    public abstract class TransactionBase : ITransactionable, IDisposable
     {
         protected readonly IDbConnection _connection;
         protected readonly IDbTransaction _transaction;
         protected readonly IDbCommand _command;
         protected readonly IDialect _dialect;
 
-        public TransactionBase(IDbConnection connection, IDbTransaction transaction, IDbCommand command, IDialect dialect)
+        protected TransactionBase(IDbConnection connection, IDbTransaction transaction, IDbCommand command, IDialect dialect)
         {
             _connection = connection;
             _transaction = transaction;
@@ -63,10 +64,7 @@ namespace crossql
 
         public Task ExecuteNonQuery(string commandText) => ExecuteNonQuery(commandText, new Dictionary<string, object>());
 
-        public virtual Task ExecuteNonQuery(string commandText, IDictionary<string, object> parameters)
-        {
-            throw new NotImplementedException("You cannot call ExecuteNonQuery on TransactionBase");
-        }
+        public abstract Task ExecuteNonQuery(string commandText, IDictionary<string, object> parameters);
 
         public Task Update<TModel>(TModel model) where TModel : class, new() => Update(model, new AutoDbMapper<TModel>());
 

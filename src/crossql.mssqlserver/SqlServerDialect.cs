@@ -5,7 +5,7 @@ namespace crossql.mssqlserver
     public class SqlServerDialect : IDialect
     {
         public DatabaseType DatabaseType => DatabaseType.SqlServer;
-        public string UseDatabase => "USE [{0}]";
+        public string UseDatabase => "USE [{0}];";
 
         public string CreateTable => "CREATE TABLE [{0}] ({1});";
 

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.IO;
+using System.Linq.Expressions;
 using System.Reflection;
 using System.Threading.Tasks;
 using crossql.Config;
@@ -41,6 +42,16 @@ namespace crossql.mssqlserver
             }
         }
 
+        public override async Task Delete<TModel>(Expression<Func<TModel, bool>> expression)
+        {
+            using (var connection = await _connectionProvider.GetOpenConnectionAsync().ConfigureAwait(false))
+            using(var command = connection.CreateCommand())
+            using (var transaction = new Transaction(connection, null,command, Dialect,DatabaseName))
+            {
+                await transaction.Delete(expression);
+            }
+        }
+
         public sealed override IDialect Dialect => _dialect ?? (_dialect = new SqlServerDialect());
 
         public override async Task<string> LoadSqlFile<TDbProvider>(string fileName)
@@ -71,9 +82,19 @@ namespace crossql.mssqlserver
 
         public override async Task<bool> CheckIfDatabaseExists() => await ExecuteScalarAsync<int>("", string.Format(Dialect.CheckDatabaseExists, DatabaseName)).ConfigureAwait(false) == 1;
 
-        public override Task CreateDatabase() => ExecuteNonQuery("", string.Format(Dialect.CreateDatabase, DatabaseName), new Dictionary<string,object>());
+        public override async Task Create<TModel>(TModel model, IDbMapper<TModel> dbMapper)
+        {
+            using (var connection = await _connectionProvider.GetOpenConnectionAsync().ConfigureAwait(false))
+            using (var command = connection.CreateCommand())
+            using (var transaction = new Transaction(connection, null, command, Dialect, DatabaseName))
+            {
+                await transaction.Create(model, dbMapper);
+            }
+        }
 
-        public override Task DropDatabase() => ExecuteNonQuery("", string.Format(Dialect.DropDatabase, DatabaseName), new Dictionary<string,object>());
+        public override Task CreateDatabase() => ExecuteNonQuery("", string.Format(Dialect.CreateDatabase, DatabaseName), new Dictionary<string, object>());
+
+        public override Task DropDatabase() => ExecuteNonQuery("", string.Format(Dialect.DropDatabase, DatabaseName), new Dictionary<string, object>());
 
         public override async Task<bool> CheckIfTableExists(string tableName) => await ExecuteScalar<int>(string.Format(Dialect.CheckTableExists, tableName)).ConfigureAwait(false) == 1;
 
@@ -99,6 +120,15 @@ namespace crossql.mssqlserver
         }
 
         public override Task ExecuteNonQuery(string commandText, IDictionary<string, object> parameters) => ExecuteNonQuery(_useStatement, commandText, parameters);
+        public override async Task Update<TModel>(TModel model, IDbMapper<TModel> dbMapper)
+        {
+            using (var connection = await _connectionProvider.GetOpenConnectionAsync().ConfigureAwait(false))
+            using (var command = connection.CreateCommand())
+            using (var transaction = new Transaction(connection, null,command, Dialect,DatabaseName))
+            {
+                await transaction.Update(model, dbMapper);
+            }
+        }
 
         private async Task ExecuteNonQuery(string useStatement, string commandText, IDictionary<string, object> parameters)
         {
@@ -106,7 +136,10 @@ namespace crossql.mssqlserver
             using (var command = connection.CreateCommand())
             using (var transaction = new Transaction(connection, null, command, Dialect, DatabaseName))
             {
-                await transaction.ExecuteNonQuery(useStatement + commandText, parameters);
+                if(string.IsNullOrWhiteSpace(useStatement))
+                    transaction.DisableUseStatement();
+                await transaction.ExecuteNonQuery(commandText, parameters);
+                transaction.EnableUseStatement();
             }
         }
 

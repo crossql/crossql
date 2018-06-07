@@ -47,17 +47,9 @@ namespace crossql
         /// <param name="model">Model Object</param>
         /// <param name="dbMapper"></param>
         /// <returns>The uniqueidentifier (Guid) of the newly created record.</returns>
-        public async Task Create<TModel>(TModel model,
+        public abstract Task Create<TModel>(TModel model,
             IDbMapper<TModel> dbMapper)
-            where TModel : class, new()
-        {
-            using (var connection = await _connectionProvider.GetOpenConnectionAsync().ConfigureAwait(false))
-            using (var command = connection.CreateCommand())
-            using(var transaction = new TransactionBase(connection, null,command, Dialect))
-            {
-                await transaction.Create(model, dbMapper);
-            }
-        }
+            where TModel : class, new();
 
         public abstract Task CreateDatabase();
 
@@ -88,16 +80,8 @@ namespace crossql
         /// <typeparam name="TModel">Model Type</typeparam>
         /// <param name="expression">The expression to use for the query</param>
         /// <remarks>THIS IS A HARD DELETE. When you run this method, the record is GONE!</remarks>
-        public async Task Delete<TModel>(Expression<Func<TModel, bool>> expression)
-            where TModel : class, new()
-        {
-            using (var connection = await _connectionProvider.GetOpenConnectionAsync().ConfigureAwait(false))
-            using(var command = connection.CreateCommand())
-            using (var transaction = new TransactionBase(connection, null,command, Dialect))
-            {
-                await transaction.Delete(expression);
-            }
-        }
+        public abstract Task Delete<TModel>(Expression<Func<TModel, bool>> expression)
+            where TModel : class, new();
 
         // Database specific stuff
         public abstract IDialect Dialect { get; }
@@ -153,17 +137,10 @@ namespace crossql
         /// <typeparam name="TModel">Model type</typeparam>
         /// <param name="model">Model Object to update</param>
         /// <param name="dbMapper">Used to map the data in the model object to parameters to be used in database calls</param>
-        public async Task Update<TModel>(TModel model,
+        public abstract Task Update<TModel>(TModel model,
             IDbMapper<TModel> dbMapper)
-            where TModel : class, new()
-        {
-            using (var connection = await _connectionProvider.GetOpenConnectionAsync().ConfigureAwait(false))
-            using (var command = connection.CreateCommand())
-            using (var transaction = new TransactionBase(connection, null,command, Dialect))
-            {
-                await transaction.Update(model, dbMapper);
-            }
-        }
+            where TModel : class, new();
+
         
         /// <summary>
         ///     Updates all Join Tables based on the <see cref="ManyToManyAttribute" />

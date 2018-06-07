@@ -11,11 +11,13 @@ namespace crossql.mssqlserver
 {
     public class Transaction : TransactionBase
     {
-        private readonly string _useStatement;
+        private readonly string _databaseName;
+        private string _useStatement;
 
         public Transaction(IDbConnection connection, IDbTransaction transaction,IDbCommand command, IDialect dialect, string databaseName) : base(connection, transaction,command, dialect)
         {
-            _useStatement = "";//string.Format(dialect.UseDatabase, databaseName);
+            _databaseName = databaseName;
+            EnableUseStatement();
         }
 
         public override async Task CreateOrUpdate<TModel>(TModel model, IDbMapper<TModel> dbMapper)
@@ -55,5 +57,15 @@ namespace crossql.mssqlserver
                 _command.ExecuteNonQuery();
             });
         }
+
+        internal void DisableUseStatement()
+        {
+            _useStatement = "";
+
+        }
+
+        internal void EnableUseStatement()
+        {
+            _useStatement = string.Format(_dialect.UseDatabase, _databaseName);        }
     }
 }

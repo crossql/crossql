@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.IO;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 using crossql.Config;
 using crossql.Extensions;
@@ -50,6 +51,16 @@ namespace crossql.sqlite
         {
             var exists = File.Exists(_sqliteDatabasePath);
             return Task.FromResult(exists);
+        }
+
+        public override async Task Create<TModel>(TModel model, IDbMapper<TModel> dbMapper)
+        {
+            using (var connection = await _connectionProvider.GetOpenConnectionAsync().ConfigureAwait(false))
+            using (var command = connection.CreateCommand())
+            using(var transaction = new Transaction(connection, null,command, Dialect))
+            {
+                await transaction.Create(model, dbMapper);
+            }
         }
 
         public override Task CreateDatabase()
@@ -112,6 +123,16 @@ namespace crossql.sqlite
 
         #region ExecuteNonQuery
 
+        public override async Task Delete<TModel>(Expression<Func<TModel, bool>> expression)
+        {
+            using (var connection = await _connectionProvider.GetOpenConnectionAsync().ConfigureAwait(false))
+            using(var command = connection.CreateCommand())
+            using (var transaction = new Transaction(connection, null,command, Dialect))
+            {
+                await transaction.Delete(expression);
+            }
+        }
+
         public override async Task ExecuteNonQuery(string commandText, IDictionary<string, object> parameters)
         {
             using (var connection = await _connectionProvider.GetOpenConnectionAsync().ConfigureAwait(false))
@@ -126,6 +147,16 @@ namespace crossql.sqlite
                             parameter.Value ?? DBNull.Value)));
 
                 await command.ExecuteNonQueryAsync().ConfigureAwait(false);
+            }
+        }
+
+        public override async Task Update<TModel>(TModel model, IDbMapper<TModel> dbMapper)
+        {
+            using (var connection = await _connectionProvider.GetOpenConnectionAsync().ConfigureAwait(false))
+            using (var command = connection.CreateCommand())
+            using (var transaction = new Transaction(connection, null,command, Dialect))
+            {
+                await transaction.Update(model, dbMapper);
             }
         }
 
