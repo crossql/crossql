@@ -11,7 +11,7 @@ namespace crossql.tests.Integration
     [TestFixture]
     public class ManyToManyTransactionTests : IntegrationTestBase
     {
-        [Test, TestCaseSource(nameof(DbProviders)), Ignore("won't compile under netstandard")]
+        [Test, TestCaseSource(nameof(DbProviders))]
         public async Task Should_Create_Records_With_ManyToMany_Relationships_Using_Transactions(IDbProvider db)
         {
             Trace.WriteLine(TraceObjectGraphInfo(db));
@@ -44,10 +44,10 @@ namespace crossql.tests.Integration
             actualAuthor.AddBooks(moreBooks.ToArray());
 
             // Excluding publisher info because only its ID is included in the hydration.
-            //actualAuthor.Should().BeEquivalentTo(expectedAuthor, options => options.Excluding(a => a.PropertyPath.Contains("Publisher")));
+            actualAuthor.Should().BeEquivalentTo(expectedAuthor, options => options.Excluding(a => a.SelectedMemberPath.Contains("Publisher")));
         }
 
-        [Test, TestCaseSource(nameof(DbProviders)), Ignore("won't compile under netstandard")]
+        [Test, TestCaseSource(nameof(DbProviders))]
         public async Task Should_Add_Records_To_ManyToMany_Relationship_Using_Transactions(IDbProvider db)
         {
             Trace.WriteLine(TraceObjectGraphInfo(db));
@@ -83,10 +83,10 @@ namespace crossql.tests.Integration
             actualAuthor.AddBooks(moreBooks.ToArray());
 
             // Excluding publisher info because only its ID is included in the hydration.
-            // actualAuthor.Should().BeEquivalentTo(expectedAuthor, options => options.Excluding(a => a.PropertyPath.Contains("Publisher")));
+            actualAuthor.Should().BeEquivalentTo(expectedAuthor, options => options.Excluding(a => a.SelectedMemberPath.Contains("Publisher")));
         }
 
-        [Test, TestCaseSource(nameof(DbProviders)), Ignore("won't compile under netstandard")]
+        [Test, TestCaseSource(nameof(DbProviders))]
         public async Task Should_Remove_Records_From_ManyToMany_Relationship_Using_Transactions(IDbProvider db)
         {
             Trace.WriteLine(TraceObjectGraphInfo(db));
@@ -121,7 +121,7 @@ namespace crossql.tests.Integration
             actualAuthor.AddBooks(moreBooks.ToArray());
 
             // Excluding publisher info because only its ID is included in the hydration.
-            //actualAuthor.Should().BeEquivalentTo(expectedAuthor, options => options.Excluding(a => a.PropertyPath.Contains("Publisher")));
+            actualAuthor.Should().BeEquivalentTo(expectedAuthor, options => options.Excluding(a => a.SelectedMemberPath.Contains("Publisher")));
         }
     }
 }

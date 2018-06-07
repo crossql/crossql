@@ -13,6 +13,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{3FC6BDE5
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "crossql.tests", "tests\crossql.tests\crossql.tests.csproj", "{267B23F4-E277-4A90-A4DD-2124F3394DB5}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{474BE14A-235D-48A1-A3AD-FD6FF5D8A4A9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -40,6 +42,9 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
+		{FFF5DF1F-8857-4B3D-ADE5-B72D3A3E9923} = {474BE14A-235D-48A1-A3AD-FD6FF5D8A4A9}
+		{8B67CA72-AC66-42F1-B32F-C5AB1DB7A840} = {474BE14A-235D-48A1-A3AD-FD6FF5D8A4A9}
+		{099E4343-DF84-4D6F-862D-A28B7A2A7082} = {474BE14A-235D-48A1-A3AD-FD6FF5D8A4A9}
 		{267B23F4-E277-4A90-A4DD-2124F3394DB5} = {3FC6BDE5-5841-4061-812B-3BB58E825E85}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
