@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using crossql.Extensions;
 using crossql.Models;
-using crossql.Internal;
 
 namespace crossql.Migrations
 {

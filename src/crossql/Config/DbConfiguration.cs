@@ -11,7 +11,7 @@ namespace crossql.Config
             _provider = provider;
         }
 
-        public void Configure<TModel>(Action<TableOptions<TModel>> func) where TModel : class, new()
+        public void Configure<TModel>(Action<ITableOptions<TModel>> func) where TModel : class, new()
         {
             var tableOptions = new TableOptions<TModel>();
             func(tableOptions);

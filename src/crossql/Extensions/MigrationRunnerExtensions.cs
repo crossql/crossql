@@ -1,8 +1,7 @@
 ﻿using System.Threading.Tasks;
-using crossql.Extensions;
 using crossql.Migrations;
 
-namespace crossql.Internal
+namespace crossql.Extensions
 {
     internal static class MigrationRunnerExtensions
     {

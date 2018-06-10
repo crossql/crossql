@@ -64,12 +64,12 @@ namespace crossql
 
         public abstract Task ExecuteNonQuery(string commandText, IDictionary<string, object> parameters);
 
-        public async Task Initialize(bool runInTransaction)
+        public async Task Initialize(bool useTransaction)
         {
             Connection = await Provider.GetOpenConnectionAsync();
             Command = Connection.CreateCommand();
 
-            if (runInTransaction)
+            if (useTransaction)
                 Transaction = Connection.BeginTransaction();
         }
 

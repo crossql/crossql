@@ -6,7 +6,7 @@ using crossql.Extensions;
 
 namespace crossql
 {
-    public class OrderByExpressionVisitor
+    internal class OrderByExpressionVisitor
     {
         private readonly StringBuilder _strings;
 

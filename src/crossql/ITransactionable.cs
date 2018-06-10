@@ -5,13 +5,6 @@ using System.Threading.Tasks;
 
 namespace crossql
 {
-    public interface ITransactionRunner
-    {
-        Task Initialize(bool runInTransaction);
-        void Commit();
-        void Rollback();
-    }
-
     public interface ITransactionable
     {
         Task Create<TModel>(TModel model, IDbMapper<TModel> dbMapper) where TModel : class, new();

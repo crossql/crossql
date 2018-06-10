@@ -9,7 +9,7 @@ using crossql.Extensions;
 
 namespace crossql
 {
-    public class WhereExpressionVisitor
+    internal class WhereExpressionVisitor
     {
         private readonly StringBuilder _strings;
         public Dictionary<string, object> Parameters;

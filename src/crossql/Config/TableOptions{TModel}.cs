@@ -4,15 +4,14 @@ using crossql.Extensions;
 
 namespace crossql.Config
 {
-    public class TableOptions<TModel> where TModel : class, new()
+    internal class TableOptions<TModel> : ITableOptions<TModel> where TModel : class, new()
     {
         /// <summary>
         ///     Tells the DbProvider what the PrimaryKey is for <see cref="TModel" />
         /// </summary>
-        public TableOptions<TModel> SetPrimaryKey(Expression<Func<TModel, object>> func)
+        public ITableOptions<TModel> SetPrimaryKey(Expression<Func<TModel, object>> func)
         {
-            var body = func.Body as MemberExpression;
-            if (body == null)
+            if (!(func.Body is MemberExpression body))
             {
                 var ubody = (UnaryExpression) func.Body;
                 body = (MemberExpression)ubody.Operand;
