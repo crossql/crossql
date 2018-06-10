@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Configuration;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading.Tasks;
 using crossql.Config;
 using crossql.Migrations;
@@ -14,18 +15,27 @@ namespace crossql.tests.Integration
 {
     public abstract class IntegrationTestBase
     {
+        private static readonly string _testDbName = ConfigurationManager.AppSettings["databaseName"];
+
         public static IEnumerable<IDbProvider> DbProviders()
         {
-            var testDbName = ConfigurationManager.AppSettings["databaseName"];
+            return SqliteOnly().Concat(MsSqlOnly());
+        }
+
+        public static IEnumerable<IDbProvider> SqliteOnly()
+        {
+            var litecp = new sqlite.DbConnectionProvider(_testDbName);
+            yield return new SqliteDbProvider(litecp);
+        }
+
+        public static IEnumerable<IDbProvider> MsSqlOnly()
+        {
             var sqlServerConnection = ConfigurationManager.ConnectionStrings["databaseConnection"];
 
             var sqlDbConnectionProvider = new SqlDbConnectionProvider(
                 sqlServerConnection.ConnectionString,
-                sqlServerConnection.ProviderName);
-            var litecp = new sqlite.DbConnectionProvider(testDbName);
-
-            yield return new SqlDbProvider(sqlDbConnectionProvider, testDbName, SetConfig);
-            yield return new SqliteDbProvider(litecp);
+                sqlServerConnection.ProviderName);            
+            yield return new SqlDbProvider(sqlDbConnectionProvider, _testDbName, SetConfig);
         }
 
         [OneTimeSetUp]
