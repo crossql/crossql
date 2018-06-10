@@ -64,7 +64,7 @@ namespace crossql
 
         public async Task Initialize(bool useTransaction)
         {
-            Connection = await Provider.GetOpenConnectionAsync();
+            Connection = await Provider.GetOpenConnection();
 
             if (useTransaction)
                 Transaction = Connection.BeginTransaction();

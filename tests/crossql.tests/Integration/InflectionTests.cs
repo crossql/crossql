@@ -32,30 +32,30 @@ namespace crossql.tests.Integration
             actualGoose.Should().BeEquivalentTo(firstGoose);
             
             // Execute Find IEnumerable
-            var actualGeese = await db.Query<GooseEntity>().Where(x => x.Name.Contains("irst")).SelectAsync();
+            var actualGeese = await db.Query<GooseEntity>().Where(x => x.Name.Contains("irst")).Select();
             actualGeese.Should().NotBeNullOrEmpty();
             
             // Execute Find List
-            var actualGeese2 = (await db.Query<GooseEntity>().Where(x => x.Name.Contains("Goose")).SelectAsync()).ToList();
+            var actualGeese2 = (await db.Query<GooseEntity>().Where(x => x.Name.Contains("Goose")).Select()).ToList();
             actualGeese2.Should().HaveCount(3);
             
             // Execute Update
             gooseToUpdate.Name = "Canada Goose";
             await db.Update(gooseToUpdate);
             
-            var actualUpdatedGoose = (await db.Query<GooseEntity>().Where(x => x.Id == gooseToUpdate.Id).SelectAsync()).FirstOrDefault();
+            var actualUpdatedGoose = (await db.Query<GooseEntity>().Where(x => x.Id == gooseToUpdate.Id).Select()).FirstOrDefault();
             actualUpdatedGoose.Should().NotBeNull();
             actualUpdatedGoose.Should().BeEquivalentTo(gooseToUpdate);
             
             // Execute Delete
-            await db.Query<GooseEntity>().Where(u => u.Id == gooseToDelete.Id).DeleteAsync();
+            await db.Query<GooseEntity>().Where(u => u.Id == gooseToDelete.Id).Delete();
             var actualDeletedGoose = await db.Query<GooseEntity>().Where(x => x.Id == gooseToDelete.Id).FirstOrDefaultAsync();
 
             actualDeletedGoose.Should().BeNull();
             
             db.Query<GooseEntity>().Truncate();
             
-            var emptyResults = await db.Query<GooseEntity>().SelectAsync();
+            var emptyResults = await db.Query<GooseEntity>().Select();
             emptyResults.Should().BeEmpty();
         }
     }

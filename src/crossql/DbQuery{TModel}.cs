@@ -8,123 +8,96 @@ using crossql.Extensions;
 
 namespace crossql
 {
-    public class DbQuery<TModel> : IDbQuery<TModel> where TModel : class, new()
+    public class DbQuery<TModel> : IDbQuery<TModel> 
+        where TModel : class, new()
     {
-        protected readonly IDbMapper<TModel> _dbMapper;
-        protected readonly IDbProvider _dbProvider;
-        protected string _orderByClause;
-        protected Dictionary<string, object> _parameters;
-        protected string _skipTake;
-        protected string _tableName;
-        protected string _whereClause;
+        protected readonly IDbMapper<TModel> DbMapper;
+        protected readonly IDbProvider DbProvider;
+        protected string OrderByClause;
+        protected Dictionary<string, object> Parameters;
+        protected string SkipTakeClause;
+        protected string TableName;
+        protected string WhereClause;
         private OrderByExpressionVisitor _orderByExpressionVisitor;
         private WhereExpressionVisitor _whereExpressionVisitor;
 
         public DbQuery(IDbProvider dbProvider, IDbMapper<TModel> dbMapper)
         {
-            _dbMapper = dbMapper;
-            _tableName = typeof(TModel).BuildTableName();
-            _dbProvider = dbProvider;
-            _parameters = new Dictionary<string, object>();
+            DbMapper = dbMapper;
+            TableName = typeof(TModel).BuildTableName();
+            DbProvider = dbProvider;
+            Parameters = new Dictionary<string, object>();
         }
-        
-        public Task<int> CountAsync() => _dbProvider.ExecuteScalar<int>(ToStringCount(), _parameters);
-        
-        public Task DeleteAsync() => _dbProvider.ExecuteNonQuery(ToStringDelete(), _parameters);
-        
-        public async Task<TResult> FirstAsync<TResult>(Func<IDataReader, IEnumerable<TResult>> mapperFunc) => (await SelectAsync(mapperFunc).ConfigureAwait(false)).First();
 
-        public async Task<TModel> FirstAsync() => (await SelectAsync().ConfigureAwait(false)).First();
-        
-        public async Task<TResult> FirstOrDefaultAsync<TResult>(Func<IDataReader, IEnumerable<TResult>> mapperFunc) => (await SelectAsync(mapperFunc).ConfigureAwait(false)).FirstOrDefault();
-        
-        public async Task<TModel> FirstOrDefaultAsync() => (await SelectAsync().ConfigureAwait(false)).FirstOrDefault();
-        
-        public IDbQuery<TModel, TJoinTo> Join<TJoinTo>() where TJoinTo : class, new() => new DbQuery<TModel, TJoinTo>(_dbProvider, JoinType.Left, _dbMapper);
+        public Task<int> Count() => DbProvider.ExecuteScalar<int>(ToStringCount(), Parameters);
 
-        public async Task<TModel> LastAsync() => (await SelectAsync().ConfigureAwait(false)).Last();
+        public Task Delete() => DbProvider.ExecuteNonQuery(ToStringDelete(), Parameters);
 
-        public async Task<TResult> LastAsync<TResult>(Func<IDataReader, IEnumerable<TResult>> mapperFunc) => (await SelectAsync(mapperFunc).ConfigureAwait(false)).Last();
+        public IDbQuery<TModel, TJoinTo> Join<TJoinTo>() where TJoinTo : class, new() => new DbQuery<TModel, TJoinTo>(DbProvider, JoinType.Left, DbMapper);
 
-        public async Task<TModel> LastOrDefaultAsync() => (await SelectAsync().ConfigureAwait(false)).LastOrDefault();
-
-        public async Task<TResult> LastOrDefaultAsync<TResult>(Func<IDataReader, IEnumerable<TResult>> mapperFunc) => (await SelectAsync(mapperFunc).ConfigureAwait(false)).LastOrDefault();
-
-        public IDbQuery<TModel, TJoinTo> ManyToManyJoin<TJoinTo>() where TJoinTo : class, new() => new DbQuery<TModel, TJoinTo>(_dbProvider, JoinType.ManyToMany, _dbMapper);
+        public IDbQuery<TModel, TJoinTo> ManyToManyJoin<TJoinTo>() where TJoinTo : class, new() => new DbQuery<TModel, TJoinTo>(DbProvider, JoinType.ManyToMany, DbMapper);
 
         public IDbQuery<TModel> OrderBy(Expression<Func<TModel, object>> expression, OrderDirection direction)
         {
             _orderByExpressionVisitor = new OrderByExpressionVisitor().Visit(expression);
 
-            _orderByClause = string.Format(
-                _dbProvider.Dialect.OrderBy,
+            OrderByClause = string.Format(
+                DbProvider.Dialect.OrderBy,
                 _orderByExpressionVisitor.OrderByExpression,
                 direction == OrderDirection.Ascending ? "ASC" : "DESC");
 
             return this;
         }
-        
-        public Task<IEnumerable<TResult>> SelectAsync<TResult>(Func<IDataReader, IEnumerable<TResult>> mapperFunc) => _dbProvider.ExecuteReader(ToString(), _parameters, mapperFunc);
-        
-        public async Task<TModel> SingleAsync() => (await SelectAsync().ConfigureAwait(false)).Single();
 
-        public async Task<TResult> SingleAsync<TResult>(Func<IDataReader, IEnumerable<TResult>> mapperFunc) => (await SelectAsync(mapperFunc).ConfigureAwait(false)).Single();
-        
-        public async Task<TModel> SingleOrDefaultAsync() => (await SelectAsync().ConfigureAwait(false)).SingleOrDefault();
+        public Task<IEnumerable<TResult>> Select<TResult>(Func<IDataReader, IEnumerable<TResult>> mapperFunc) => DbProvider.ExecuteReader(ToString(), Parameters, mapperFunc);
 
-        public async Task<TResult> SingleOrDefaultAsync<TResult>(Func<IDataReader, IEnumerable<TResult>> mapperFunc) => (await SelectAsync(mapperFunc).ConfigureAwait(false)).SingleOrDefault();
-
-        public Task<IEnumerable<TModel>> SelectAsync() => SelectAsync(_dbMapper.BuildListFrom);
+        public Task<IEnumerable<TModel>> Select() => Select(DbMapper.BuildListFrom);
 
         public IDbQuery<TModel> SkipTake(int skip, int take)
         {
-            _skipTake = string.Format(_dbProvider.Dialect.SkipTake, skip, take);
+            SkipTakeClause = string.Format(DbProvider.Dialect.SkipTake, skip, take);
             return this;
         }
-        
-        public async Task<IList<TModel>> ToListAsync() => (await SelectAsync().ConfigureAwait(false)).ToList();
 
-        public async Task<IList<TResult>> ToListAsync<TResult>(Func<IDataReader, IEnumerable<TResult>> mapperFunc) => (await SelectAsync(mapperFunc).ConfigureAwait(false)).ToList();
+        public virtual string ToStringCount() => string.Format(DbProvider.Dialect.SelectCountFrom, TableName, GetExtendedWhereClause()).Trim();
 
-        public virtual string ToStringCount() => string.Format(_dbProvider.Dialect.SelectCountFrom, _tableName, GetExtendedWhereClause()).Trim();
+        public virtual string ToStringDelete() => string.Format(DbProvider.Dialect.DeleteFrom, TableName, WhereClause);
 
-        public virtual string ToStringDelete() => string.Format(_dbProvider.Dialect.DeleteFrom, _tableName, _whereClause);
-        
-        public string ToStringTruncate() => string.Format(_dbProvider.Dialect.Truncate, _tableName);
+        public string ToStringTruncate() => string.Format(DbProvider.Dialect.Truncate, TableName);
 
-        public void Truncate() => _dbProvider.ExecuteNonQuery(ToStringTruncate());
-        
-        public Task UpdateAsync(TModel model) => UpdateAsync(model, _dbMapper.BuildDbParametersFrom);
+        public void Truncate() => DbProvider.ExecuteNonQuery(ToStringTruncate());
 
-        public virtual Task UpdateAsync(TModel model, Func<TModel, IDictionary<string, object>> mapToDbParameters)
+        public Task Update(TModel model) => Update(model, DbMapper.BuildDbParametersFrom);
+
+        public virtual Task Update(TModel model, Func<TModel, IDictionary<string, object>> mapToDbParameters)
         {
-            var dbFields = _dbMapper.FieldNames
+            var dbFields = DbMapper.FieldNames
                 .Where(field => field != "ID")
                 .Select(field => string.Format("[{0}] = @{0}", field)).ToList();
 
             var whereClause = GetExtendedWhereClause();
-            var commandText = string.Format(_dbProvider.Dialect.Update, _tableName, string.Join(",", dbFields),
+            var commandText = string.Format(DbProvider.Dialect.Update, TableName, string.Join(",", dbFields),
                 whereClause);
-            var parameters = _parameters.Union(mapToDbParameters(model))
+            var parameters = Parameters.Union(mapToDbParameters(model))
                 .ToDictionary(pair => pair.Key, pair => pair.Value);
 
-            return _dbProvider.ExecuteNonQuery(commandText, parameters);
+            return DbProvider.ExecuteNonQuery(commandText, parameters);
         }
 
         public IDbQuery<TModel> Where(Expression<Func<TModel, bool>> expression)
         {
-            _whereExpressionVisitor = new WhereExpressionVisitor(_parameters).Visit(expression);
-            _parameters = _whereExpressionVisitor.Parameters;
+            _whereExpressionVisitor = new WhereExpressionVisitor(Parameters).Visit(expression);
+            Parameters = _whereExpressionVisitor.Parameters;
 
-            if (string.IsNullOrEmpty(_whereClause))
-                _whereClause = string.Format(_dbProvider.Dialect.Where, _whereExpressionVisitor.WhereExpression);
+            if (string.IsNullOrEmpty(WhereClause))
+                WhereClause = string.Format(DbProvider.Dialect.Where, _whereExpressionVisitor.WhereExpression);
             else
-                _whereClause += " AND " + _whereExpressionVisitor.WhereExpression;
+                WhereClause += " AND " + _whereExpressionVisitor.WhereExpression;
             return this;
         }
 
-        public override string ToString() => string.Format(_dbProvider.Dialect.SelectFrom, _tableName, GetExtendedWhereClause()).Trim();
+        public override string ToString() => string.Format(DbProvider.Dialect.SelectFrom, TableName, GetExtendedWhereClause()).Trim();
 
-        protected string GetExtendedWhereClause() => string.Join(" ", _whereClause, _orderByClause, _skipTake);
+        protected string GetExtendedWhereClause() => string.Join(" ", WhereClause, OrderByClause, SkipTakeClause);
     }
 }

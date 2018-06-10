@@ -25,7 +25,7 @@ namespace crossql.sqlite
 
         public string DatabasePath { get; }
 
-        public async Task<IDbConnection> GetOpenConnectionAsync()
+        public async Task<IDbConnection> GetOpenConnection()
         {
             var connection = new SqliteConnection(_connectionString);
             await connection.OpenAsync().ConfigureAwait(false);

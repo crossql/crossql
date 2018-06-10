@@ -70,7 +70,7 @@ namespace crossql.sqlite
 
         public override async Task<TResult> ExecuteReader<TResult>(string commandText, IDictionary<string, object> parameters, Func<IDataReader, TResult> readerMapper)
         {
-            using (var connection = await _connectionProvider.GetOpenConnectionAsync().ConfigureAwait(false))
+            using (var connection = await _connectionProvider.GetOpenConnection().ConfigureAwait(false))
             using (var command = (SqliteCommand) connection.CreateCommand())
             {
                 command.CommandType = CommandType.Text;
@@ -90,7 +90,7 @@ namespace crossql.sqlite
 
         public override async Task<TKey> ExecuteScalar<TKey>(string commandText, IDictionary<string, object> parameters)
         {
-            using (var connection = await _connectionProvider.GetOpenConnectionAsync().ConfigureAwait(false))
+            using (var connection = await _connectionProvider.GetOpenConnection().ConfigureAwait(false))
             using (var command = (SqliteCommand) connection.CreateCommand())
             {
                 command.CommandType = CommandType.Text;

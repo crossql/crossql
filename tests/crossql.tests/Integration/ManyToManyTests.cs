@@ -42,7 +42,7 @@ namespace crossql.tests.Integration
             var moreBooks = await db.Query<BookModel>()
                 .ManyToManyJoin<AuthorModel>()
                 .Where((b, a) => a.Id == actualAuthor.Id)
-                .SelectAsync();
+                .Select();
             actualAuthor.AddBooks(moreBooks.ToArray());
 
             // Excluding publisher info because only its ID is included in the hydration.
@@ -80,7 +80,7 @@ namespace crossql.tests.Integration
             var moreBooks = await db.Query<BookModel>()
                 .ManyToManyJoin<AuthorModel>()
                 .Where((b,a)=> a.Id == actualAuthor.Id)
-                .SelectAsync();
+                .Select();
             actualAuthor.AddBooks(moreBooks.ToArray());
 
             // Excluding publisher info because only its ID is included in the hydration.
@@ -119,7 +119,7 @@ namespace crossql.tests.Integration
             var moreBooks = await db.Query<BookModel>()
                 .ManyToManyJoin<AuthorModel>()
                 .Where((b, a) => a.Id == actualAuthor.Id)
-                .SelectAsync();
+                .Select();
             actualAuthor.AddBooks(moreBooks.ToArray());
 
             // Excluding publisher info because only its ID is included in the hydration.

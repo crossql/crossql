@@ -1,13 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using crossql.Extensions;
 using crossql.tests.Helpers.Fixtures;
 using crossql.tests.Helpers.Models;
 using FluentAssertions;
-using Microsoft.Data.Sqlite;
 using NUnit.Framework;
 
 namespace crossql.tests.Integration
