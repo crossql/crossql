@@ -18,11 +18,8 @@ namespace crossql.mssqlserver
         private readonly IDbConnectionProvider _connectionProvider;
         private IDialect _dialect;
 
-        public DbProvider(IDbConnectionProvider connectionProvider, string databaseName)
+        public DbProvider(IDbConnectionProvider connectionProvider, string databaseName):this(connectionProvider,databaseName,null)
         {
-            DatabaseName = databaseName;
-            _connectionProvider = connectionProvider;
-            _useStatement = string.Format(Dialect.UseDatabase, databaseName);
         }
 
         public DbProvider(IDbConnectionProvider connectionProvider, string databaseName, Action<DbConfiguration> dbConfig) : base(dbConfig)
@@ -51,21 +48,6 @@ namespace crossql.mssqlserver
         }
 
         public sealed override IDialect Dialect => _dialect ?? (_dialect = new SqlServerDialect());
-
-        public override async Task<string> LoadSqlFile<TDbProvider>(string fileName)
-        {
-            var sqlStatement = string.Empty;
-
-            using (var resourceStream = Assembly.GetExecutingAssembly().GetManifestResourceStream(fileName))
-            {
-                if (resourceStream != null)
-                {
-                    sqlStatement = await new StreamReader(resourceStream).ReadToEndAsync().ConfigureAwait(false);
-                }
-            }
-
-            return sqlStatement;
-        }
 
         public override async Task RunInTransaction(Func<ITransactionable, Task> dbChange)
         {

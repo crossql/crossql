@@ -44,16 +44,19 @@ namespace crossql.mssqlserver
 
         public override Task ExecuteNonQuery(string commandText, IDictionary<string, object> parameters) => ExecuteNonQuery(_useStatement, commandText, parameters);
 
-        private async Task ExecuteNonQuery(string useStatement, string commandText, IDictionary<string, object> parameters)
+        private Task ExecuteNonQuery(string useStatement, string commandText, IDictionary<string, object> parameters)
         {
-            await Task.Run(() => { 
-                if (Transaction != null) Command.Transaction = Transaction;
+            return Task.Run(() => {
+                using (var command = Connection.CreateCommand())
+                {
+                    if (Transaction != null) command.Transaction = Transaction;
 
-                Command.CommandType = CommandType.Text;
-                Command.CommandText = useStatement + commandText;
-                parameters.ForEach(param=> Command.Parameters.Add(new SqlParameter(param.Key, param.Value ?? DBNull.Value)));
-            
-                Command.ExecuteNonQuery();
+                    command.CommandType = CommandType.Text;
+                    command.CommandText = useStatement + commandText;
+                    parameters.ForEach(param => command.Parameters.Add(new SqlParameter(param.Key, param.Value ?? DBNull.Value)));
+
+                    command.ExecuteNonQuery();
+                }
             });
         }
 

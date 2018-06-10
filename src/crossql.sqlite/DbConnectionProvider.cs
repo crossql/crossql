@@ -1,6 +1,7 @@
 using System;
 using System.Data;
 using System.Diagnostics;
+using System.IO;
 using System.Threading.Tasks;
 using Microsoft.Data.Sqlite;
 using crossql;
@@ -10,11 +11,13 @@ namespace crossql.sqlite
     public class DbConnectionProvider : IDbConnectionProvider
     {
         private readonly string _connectionString;
+        
+        public DbConnectionProvider(string sqlFile):this(sqlFile, SqliteSettings.Default){  }
 
         public DbConnectionProvider(string sqlFile, SqliteSettings sqliteSettings)
         {
-            var connectionString = $"Data Source={sqlFile}";
-            var sqliteConnectionStringBuilder = new SqliteConnectionStringBuilder(sqlFile)
+            DatabasePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), sqlFile);            
+            var sqliteConnectionStringBuilder = new SqliteConnectionStringBuilder($"Data Source={DatabasePath}")
                 {
                 
                     //CacheSize = sqliteSettings.CacheSize,
@@ -29,12 +32,8 @@ namespace crossql.sqlite
             _connectionString = sqliteConnectionStringBuilder.ConnectionString;
         }
 
-        public DbConnectionProvider(string sqlFile)
-        {
-            var connectionString = $"Data Source={sqlFile}";
-            _connectionString = connectionString;
-        }
-
+        public string DatabasePath { get; }
+            
         public async Task<IDbConnection> GetOpenConnectionAsync()
         {
             var connection = new SqliteConnection(_connectionString);

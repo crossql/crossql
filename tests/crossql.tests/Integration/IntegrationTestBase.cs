@@ -22,9 +22,10 @@ namespace crossql.tests.Integration
             var sqlDbConnectionProvider = new SqlDbConnectionProvider(
                 sqlServerConnection.ConnectionString,
                 sqlServerConnection.ProviderName);
+            var litecp = new sqlite.DbConnectionProvider(testDbName);
 
             yield return new SqlDbProvider(sqlDbConnectionProvider, testDbName, SetConfig);
-            yield return new SqliteDbProvider($"{testDbName}.sqlite3", SetConfig);
+            yield return new SqliteDbProvider(litecp);
         }
 
         [OneTimeSetUp]

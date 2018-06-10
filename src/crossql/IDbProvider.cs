@@ -19,7 +19,6 @@ namespace crossql
         Task<TResult> ExecuteReader<TResult>(string commandText, IDictionary<string, object> parameters, Func<IDataReader, TResult> readerMapper);
         Task<TKey> ExecuteScalar<TKey>(string commandText);
         Task<TKey> ExecuteScalar<TKey>(string commandText, IDictionary<string, object> parameters);
-        Task<string> LoadSqlFile<TDbProvider>(string fileName);
         IDbQuery<TModel> Query<TModel>() where TModel : class, new();
         Task RunInTransaction(Func<ITransactionable,Task> dbChange);
         IDbScalar<TModel, TReturnType> Scalar<TModel, TReturnType>(Expression<Func<TModel, TReturnType>> propertyExpression) where TModel : class, new();

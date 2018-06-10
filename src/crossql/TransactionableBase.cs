@@ -14,7 +14,6 @@ namespace crossql
     {
         protected readonly IDialect Dialect;
         protected readonly IDbConnectionProvider Provider;
-        protected IDbCommand Command;
         protected IDbConnection Connection;
         protected IDbTransaction Transaction;
 
@@ -59,7 +58,6 @@ namespace crossql
         {
             Connection?.Dispose();
             Transaction?.Dispose();
-            Command?.Dispose();
         }
 
         public abstract Task ExecuteNonQuery(string commandText, IDictionary<string, object> parameters);
@@ -67,7 +65,6 @@ namespace crossql
         public async Task Initialize(bool useTransaction)
         {
             Connection = await Provider.GetOpenConnectionAsync();
-            Command = Connection.CreateCommand();
 
             if (useTransaction)
                 Transaction = Connection.BeginTransaction();

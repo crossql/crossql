@@ -38,6 +38,7 @@ namespace crossql.sqlite
         public bool ReadOnly { get; set; }
 
         public bool EnforceForeignKeys { get; set; } = true;
+        public static SqliteSettings Default => new SqliteSettings();
     }
 
     public enum SynchronizationModes

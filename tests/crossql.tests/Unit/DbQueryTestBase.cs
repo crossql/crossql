@@ -5,9 +5,10 @@ namespace crossql.tests.Unit
     {
         public static IEnumerable<IDbProvider> Repositories()
         {
-            var cp = new mssqlserver.DbConnectionProvider(null, null);
-            var sqlServerDbProvider = new mssqlserver.DbProvider(cp, "foo");
-            var sqliteDbProvider = new sqlite.DbProvider("foo");
+            var mscp = new mssqlserver.DbConnectionProvider(null, null);
+            var litecp = new sqlite.DbConnectionProvider("foo");
+            var sqlServerDbProvider = new mssqlserver.DbProvider(mscp, "foo");
+            var sqliteDbProvider = new sqlite.DbProvider(litecp);
 
             yield return sqlServerDbProvider;
             yield return sqliteDbProvider;

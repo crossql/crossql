@@ -43,7 +43,7 @@ namespace crossql.tests.Unit
             Assert.AreEqual(expectedUser.IsDeleted, (bool) actual["IsDeleted"]);
         }
 
-        [Test, Ignore("we're using a different reader now")]
+        [Test, Ignore("AutoDbMapper uses a different approach to getting data from the dbreader... need to rethink these tests.")]
         public void ShouldBuildListOfModelObjectsFromReader()
         {
             // Setup
@@ -110,7 +110,7 @@ namespace crossql.tests.Unit
             Assert.AreEqual(books[1].Name, publishers[1].Name);
         }
 
-        [Test, Ignore("we're using a different reader now")]
+        [Test, Ignore("AutoDbMapper uses a different approach to getting data from the dbreader... need to rethink these tests.")]
         public void ShouldBuildModelObjectFromReader()
         {
             // Setup

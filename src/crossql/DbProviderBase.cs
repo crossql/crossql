@@ -13,14 +13,10 @@ namespace crossql
 {
     public abstract class DbProviderBase : IDbProvider
     {
-        protected DbProviderBase()
-        {
-        }
-
         protected DbProviderBase( Action<DbConfiguration> config)
         {
             var dbConfig = new DbConfiguration(this);
-            config(dbConfig);
+            config?.Invoke(dbConfig);
         }
 
         public abstract Task<bool> CheckIfDatabaseExists();
@@ -81,7 +77,6 @@ namespace crossql
 
         public abstract Task<TKey> ExecuteScalar<TKey>(string commandText, IDictionary<string, object> parameters);
 
-        public abstract Task<string> LoadSqlFile<TDbProvider>(string fileName);
         /// <summary>
         ///     Query the Database for ALL records.
         /// </summary>

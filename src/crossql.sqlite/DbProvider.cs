@@ -11,64 +11,49 @@ using Microsoft.Data.Sqlite;
 
 namespace crossql.sqlite
 {
-    public class DbProvider : SqliteDbProviderBase
+    public class DbProvider : DbProviderBase
     {
         private readonly IDbConnectionProvider _connectionProvider;
-        private readonly bool _enforceForeignKeys = true;
         private readonly string _sqliteDatabasePath;
+        private readonly SqliteSettings _settings;
+        private IDialect _dialect;
 
-        public DbProvider(string databaseName, Action<DbConfiguration> config) : base(config)
+        private void EnableForeignKeys(IDbCommand command)
         {
-            DatabaseName = databaseName;
-            _sqliteDatabasePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), databaseName);
-            _connectionProvider = new DbConnectionProvider(_sqliteDatabasePath);
+            if (!_settings.EnforceForeignKeys) return;
+            
+            command.CommandText = "PRAGMA foreign_keys=ON";
+            command.ExecuteNonQuery();
+        }
+        public DbProvider(IDbConnectionProvider connectionProvider):this(connectionProvider,new SqliteSettings())
+        {
         }
 
-        public DbProvider(string databaseName, SqliteSettings settings, Action<DbConfiguration> config) : base(config)
+        public DbProvider(IDbConnectionProvider connectionProvider,SqliteSettings settings):this(connectionProvider,settings, null)
         {
-            DatabaseName = databaseName;
-            _enforceForeignKeys = settings.EnforceForeignKeys;
-            _sqliteDatabasePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), databaseName);
-            _connectionProvider = new DbConnectionProvider(_sqliteDatabasePath, settings);
         }
 
-        public DbProvider(string databaseName)
+        public DbProvider(IDbConnectionProvider connectionProvider, SqliteSettings settings, Action<DbConfiguration> config):base(config)
         {
-            DatabaseName = databaseName;
-            _sqliteDatabasePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), databaseName);
-            _connectionProvider = new DbConnectionProvider(_sqliteDatabasePath);
-        }
-
-        public DbProvider(string databaseName, SqliteSettings settings)
-        {
-            DatabaseName = databaseName;
-            _enforceForeignKeys = settings.EnforceForeignKeys;
-            _sqliteDatabasePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), databaseName);
-            _connectionProvider = new DbConnectionProvider(_sqliteDatabasePath, settings);
+            _settings = settings;
+            _connectionProvider = connectionProvider;
+            _sqliteDatabasePath = ((DbConnectionProvider) connectionProvider).DatabasePath;
         }
 
         public override Task<bool> CheckIfDatabaseExists()
         {
             var exists = File.Exists(_sqliteDatabasePath);
-            return Task.FromResult(exists);
-        }
+            return Task.FromResult(exists);        }
 
-        public override async Task Create<TModel>(TModel model, IDbMapper<TModel> dbMapper)
+        public override async Task<bool> CheckIfTableColumnExists(string tableName, string columnName)
         {
-            using (var transaction = new Transactionable(_connectionProvider, Dialect))
-            {
-                try
-                {
-                    await transaction.Create(model, dbMapper);
-                    transaction.Commit();
-                }
-                catch
-                {
-                    transaction.Rollback();
-                    throw;
-                }
-            }
-        }
+            var columnSql = await ExecuteScalar<string>(string.Format(Dialect.CheckTableColumnExists, tableName)).ConfigureAwait(false);
+            return columnSql.Contains($"[{columnName}]");        }
+
+        public override async Task<bool> CheckIfTableExists(string tableName)
+        {
+            var count = await ExecuteScalar<int>(string.Format(Dialect.CheckTableExists, tableName)).ConfigureAwait(false);
+            return count > 0;        }
 
         public override Task CreateDatabase()
         {
@@ -82,29 +67,6 @@ namespace crossql.sqlite
             File.Delete(_sqliteDatabasePath);
             return Task.CompletedTask;
         }
-
-        public override async Task<bool> CheckIfTableExists(string tableName)
-        {
-            var count = await ExecuteScalar<int>(string.Format(Dialect.CheckTableExists, tableName)).ConfigureAwait(false);
-            return count > 0;
-        }
-
-        public override async Task<bool> CheckIfTableColumnExists(string tableName, string columnName)
-        {
-            var columnSql = await ExecuteScalar<string>(string.Format(Dialect.CheckTableColumnExists, tableName)).ConfigureAwait(false);
-            return columnSql.Contains($"[{columnName}]");
-        }
-
-        private void EnableForeignKeys(IDbCommand command)
-        {
-            if (_enforceForeignKeys)
-            {
-                command.CommandText = "PRAGMA foreign_keys=ON";
-                command.ExecuteNonQuery();
-            }
-        }
-
-        #region ExecuteReader
 
         public override async Task<TResult> ExecuteReader<TResult>(string commandText, IDictionary<string, object> parameters, Func<IDataReader, TResult> readerMapper)
         {
@@ -123,67 +85,7 @@ namespace crossql.sqlite
                 {
                     return readerMapper(reader);
                 }
-            }
-        }
-
-        #endregion
-
-        #region ExecuteNonQuery
-
-        public override async Task Delete<TModel>(Expression<Func<TModel, bool>> expression)
-        {
-            using (var transaction = new Transactionable(_connectionProvider, Dialect))
-            {
-                try
-                {
-                    await transaction.Delete(expression);
-                    transaction.Commit();
-                }
-                catch
-                {
-                    transaction.Rollback();
-                    throw;
-                }
-            }
-        }
-
-        public override async Task ExecuteNonQuery(string commandText, IDictionary<string, object> parameters)
-        {
-            using (var connection = await _connectionProvider.GetOpenConnectionAsync().ConfigureAwait(false))
-            using (var command = (SqliteCommand)connection.CreateCommand())
-            {
-                command.CommandType = CommandType.Text;
-                EnableForeignKeys(command);
-                command.CommandText = commandText;
-                parameters.ForEach(
-                    parameter =>
-                        command.Parameters.Add(new SqliteParameter(parameter.Key,
-                            parameter.Value ?? DBNull.Value)));
-
-                await command.ExecuteNonQueryAsync().ConfigureAwait(false);
-            }
-        }
-
-        public override async Task Update<TModel>(TModel model, IDbMapper<TModel> dbMapper)
-        {
-            using (var transaction = new Transactionable(_connectionProvider, Dialect))
-            {
-                try
-                {
-                    await transaction.Update(model, dbMapper);
-                    transaction.Commit();
-                }
-                catch
-                {
-                    transaction.Rollback();
-                    throw;
-                }
-            }
-        }
-
-        #endregion
-
-        #region ExecuteScalar
+            }        }
 
         public override async Task<TKey> ExecuteScalar<TKey>(string commandText, IDictionary<string, object> parameters)
         {
@@ -217,41 +119,70 @@ namespace crossql.sqlite
                 }
 
                 return (TKey)result;
+            }        }
+
+        public override async Task RunInTransaction(Func<ITransactionable, Task> dbChange)
+        {
+            using (var transaction = new Transactionable(_connectionProvider, Dialect, _settings))
+            {
+                try
+                {
+                    await transaction.Initialize(true);
+                    await dbChange(transaction);
+                    transaction.Commit();
+                }
+                catch
+                {
+                    transaction.Rollback();
+                    throw;
+                }
+            }        }
+
+        public override async Task ExecuteNonQuery(string commandText, IDictionary<string, object> parameters)
+        {
+            using (var transactionable = new Transactionable(_connectionProvider, Dialect, _settings))
+            {
+                await transactionable.Initialize(false);
+                await transactionable.ExecuteNonQuery(commandText, parameters);
             }
         }
 
-        public override async Task RunInTransaction(Func<ITransactionable,Task> dbChange)
+        public override async Task Update<TModel>(TModel model, IDbMapper<TModel> dbMapper)
         {
-            //dbChange(transaction);
-            //using (var connection = await _connectionProvider.GetOpenConnectionAsync().ConfigureAwait(false))
-            //using (var trans = connection.BeginTransaction())
-            //using (var command = connection.CreateCommand())
-            //{
-            //    command.TransactionableBase = trans;
-            //    try
-            //    {
-            //        command.CommandType = CommandType.Text;
-            //        foreach (var cmd in transaction.Commands)
-            //        {
-            //            command.CommandText = cmd.CommandText.ToString();
-            //            cmd.CommandParameters.ForEach(parameter =>
-            //            {
-            //                command.Parameters.Add(new SqliteParameter(parameter.Key, parameter.Value ?? DBNull.Value));
-            //            });
-
-            //            command.ExecuteNonQuery();
-            //            command.Parameters.Clear();
-            //        }
-            //        trans.Commit();
-            //    }
-            //    catch
-            //    {
-            //        trans?.Rollback();
-            //        throw;
-            //    }
-            //}
+            using (var transaction = new Transactionable(_connectionProvider, Dialect, _settings))
+            {
+                await transaction.Initialize(false);
+                await transaction.Update(model, dbMapper);
+            }
         }
 
-        #endregion
+        public override async Task CreateOrUpdate<TModel>(TModel model, IDbMapper<TModel> dbMapper)
+        {
+            using (var transaction = new Transactionable(_connectionProvider, Dialect, _settings))
+            {
+                await transaction.Initialize(false);
+                await transaction.CreateOrUpdate(model,dbMapper);
+            }
+        }
+
+        public override async Task Delete<TModel>(Expression<Func<TModel, bool>> expression)
+        {
+            using (var transactionable = new Transactionable(_connectionProvider, Dialect, _settings))
+            {
+                await transactionable.Initialize(false);
+                await transactionable.Delete(expression);
+            }
+        }
+
+        public sealed override IDialect Dialect => _dialect ?? (_dialect = new SqliteDialect());
+
+        public override async  Task Create<TModel>(TModel model, IDbMapper<TModel> dbMapper)
+        {
+            using (var transaction = new Transactionable(_connectionProvider, Dialect, _settings))
+            {
+                await transaction.Initialize(false);
+                await transaction.Create(model, dbMapper);
+            }
+        }
     }
 }
