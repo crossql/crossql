@@ -31,5 +31,8 @@ namespace crossql.tests.Helpers.Fixtures
                 Name = "GooseToDelete",
             };
         }
+
+        public static GooseModel GooseToUpdate { get; set; }
+        public static GooseModel GooseToDelete { get; set; }
     }
 }
