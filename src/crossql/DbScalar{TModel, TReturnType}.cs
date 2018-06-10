@@ -38,12 +38,6 @@ namespace crossql
 
         public Task<TReturnType> SumAsync() => _dbProvider.ExecuteScalar<TReturnType>(ToStringSum(), _parameters);
 
-        public TReturnType Max() => MaxAsync().Result;
-
-        public TReturnType Min() => MinAsync().Result;
-
-        public TReturnType Sum() => SumAsync().Result;
-
         public string ToStringMax() => string.Format(_dbProvider.Dialect.SelectMaxFrom, _tableName, _whereClause, _propertyName).Trim();
 
         public string ToStringMin() => string.Format(_dbProvider.Dialect.SelectMinFrom, _tableName, _whereClause, _propertyName).Trim();

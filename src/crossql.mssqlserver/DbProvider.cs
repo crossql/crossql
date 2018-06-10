@@ -73,7 +73,7 @@ namespace crossql.mssqlserver
         private async Task<TResult> ExecuteReader<TResult>(string useStatement, string commandText, IEnumerable<KeyValuePair<string, object>> parameters,
             Func<IDataReader, TResult> readerMapper)
         {
-            using (var connection = await _connectionProvider.GetOpenConnectionAsync().ConfigureAwait(false))
+            using (var connection = await _connectionProvider.GetOpenConnection().ConfigureAwait(false))
             using (var command = connection.CreateCommand())
             {
                 command.CommandType = CommandType.Text;
@@ -94,7 +94,7 @@ namespace crossql.mssqlserver
 
         private async Task<TKey> ExecuteScalarAsync<TKey>(string useStatement, string commandText, IEnumerable<KeyValuePair<string, object>> parameters)
         {
-            using (var connection = await _connectionProvider.GetOpenConnectionAsync().ConfigureAwait(false))
+            using (var connection = await _connectionProvider.GetOpenConnection().ConfigureAwait(false))
             using (var command = connection.CreateCommand())
             {
                 command.CommandType = CommandType.Text;

@@ -65,7 +65,7 @@ namespace crossql.tests.Integration
             Assert.AreNotEqual(Guid.Empty, author.Id);
 
             // Execute Find IEnumerable
-            var actualUsers1 = await db.Query<AuthorModel>().Where(x => x.FirstName.Contains("jil")).SelectAsync();
+            var actualUsers1 = await db.Query<AuthorModel>().Where(x => x.FirstName.Contains("jil")).Select();
             // this returns an IEnumerable
 
             // Assert Find IEnumerable
@@ -107,7 +107,7 @@ namespace crossql.tests.Integration
             Assert.AreEqual(expectedUser.Email, actualUser.Email);
 
             // Execute Delete
-            await db.Query<AuthorModel>().Where(u => u.Id == author.Id).DeleteAsync();
+            await db.Query<AuthorModel>().Where(u => u.Id == author.Id).Delete();
             actualUser = await db.Query<AuthorModel>().Where(x => x.Id == author.Id).FirstOrDefaultAsync();
 
             // Assert Delete
@@ -135,7 +135,7 @@ namespace crossql.tests.Integration
             Assert.AreNotEqual(Guid.Empty, goose.Id);
 
             // Execute Find IEnumerable
-            var actualGeese = await db.Query<GooseEntity>().Where(x => x.Name.Contains("irst")).SelectAsync();
+            var actualGeese = await db.Query<GooseEntity>().Where(x => x.Name.Contains("irst")).Select();
             // this returns an IEnumerable
 
             // Assert Find IEnumerable
@@ -159,7 +159,7 @@ namespace crossql.tests.Integration
 
             // Execute Delete
             var gooseToDelete = GooseFixture.GooseToDelete;
-            await db.Query<GooseEntity>().Where(u => u.Id == gooseToDelete.Id).DeleteAsync();
+            await db.Query<GooseEntity>().Where(u => u.Id == gooseToDelete.Id).Delete();
             var actualDeletedGoose = db.Query<GooseEntity>().Where(x => x.Id == gooseToDelete.Id).FirstOrDefaultAsync();
 
             // Assert Delete
@@ -167,7 +167,7 @@ namespace crossql.tests.Integration
 
             db.Query<GooseEntity>().Truncate();
 
-            var emptyResults = await db.Query<GooseEntity>().SelectAsync();
+            var emptyResults = await db.Query<GooseEntity>().Select();
             Assert.IsEmpty(emptyResults);
         }
 
@@ -282,13 +282,13 @@ namespace crossql.tests.Integration
         }
 
         [Test, TestCaseSource(nameof(DbProviders))]
-        public void ShouldSelectMaxCreatedDate(IDbProvider db)
+        public async Task ShouldSelectMaxCreatedDate(IDbProvider db)
         {
             Trace.WriteLine(TraceObjectGraphInfo(db));
             //const string expectedSelect = "SELECT MAX(CreatedDate) FROM Students";
 
             // Execute Query
-            var actualSelect = db.Scalar<AuthorModel, DateTime>(s => s.CreatedDate).Max();
+            var actualSelect = await db.Scalar<AuthorModel, DateTime>(s => s.CreatedDate).MaxAsync();
 
             // Assert
             Assert.IsNotNull(actualSelect);
@@ -330,7 +330,7 @@ namespace crossql.tests.Integration
         //        .ManyToManyJoin<PublisherModel>()
         //        .Where((s, c) => c.Name == expectedCourse.Name)
         //        .OrderBy((s, c) => s.FirstName, OrderDirection.Descending)
-        //        .SelectAsync()
+        //        .Select()
         //        .ToList();
 
         //    // Assert
@@ -355,7 +355,7 @@ namespace crossql.tests.Integration
         //        .LeftJoin<BookModel>()
         //        .Where((author, book) => book.Name == "FirstBookTitle")
         //        .OrderBy((author, book) => author.FirstName, OrderDirection.Descending)
-        //        .SelectAsync()
+        //        .Select()
         //        .ToList();
 
         //    // Assert
@@ -389,7 +389,7 @@ namespace crossql.tests.Integration
         //    var actualUsers = db.Query<AuthorModel>()
         //        .ManyToManyJoin<PublisherModel>()
         //        .Where((s, b) => b.Id == mathCourseId)
-        //        .SelectAsync()
+        //        .Select()
         //        .ToList();
 
         //    // Assert
@@ -411,7 +411,7 @@ namespace crossql.tests.Integration
         //    var studentCourses = db.Query<PublisherModel>()
         //        .ManyToManyJoin<AuthorModel>()
         //        .Where((c, s) => c.IsDeleted == false && s.Id == studentToUpdate.Id)
-        //        .SelectAsync()
+        //        .Select()
         //        .ToList();
 
         //    // assert
@@ -434,7 +434,7 @@ namespace crossql.tests.Integration
         //    var studentCourses = db.Query<PublisherModel>()
         //        .ManyToManyJoin<AuthorModel>()
         //        .Where((c, s) => c.IsDeleted == false && s.Id == studentToDelete.Id)
-        //        .SelectAsync()
+        //        .Select()
         //        .ToList();
 
         //    // assert

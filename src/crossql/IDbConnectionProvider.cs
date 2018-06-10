@@ -5,6 +5,6 @@ namespace crossql
 {
     public interface IDbConnectionProvider
     {
-        Task<IDbConnection> GetOpenConnectionAsync();
+        Task<IDbConnection> GetOpenConnection();
     }
 }

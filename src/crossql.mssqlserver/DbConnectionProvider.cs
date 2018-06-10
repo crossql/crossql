@@ -16,7 +16,7 @@ namespace crossql.mssqlserver
             _connectionProviderName = connectionProviderName;
         }
 
-        public async Task<IDbConnection> GetOpenConnectionAsync()
+        public async Task<IDbConnection> GetOpenConnection()
         {
             var dbFactory = DbProviderFactories.GetFactory(_connectionProviderName);
 

@@ -10,9 +10,6 @@ namespace crossql
         Task<TType> MaxAsync();
         Task<TType> MinAsync();
         Task<TType> SumAsync();
-        TType Max();
-        TType Min();
-        TType Sum();
 
         string ToStringMax();
         string ToStringMin();
