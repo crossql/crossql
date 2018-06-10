@@ -53,7 +53,7 @@ namespace crossql.tests.Integration
             await db.Create(car);
 
             // assert create
-            var actualCar = await db.Query<AutomobileModel>().Where(c => c.Vin == car.Vin).SingleAsync();
+            var actualCar = await db.Query<Automobile>().Where(c => c.Vin == car.Vin).SingleAsync();
             actualCar.Should().NotBeNull();
             actualCar.Should().BeEquivalentTo(car);
 
@@ -63,15 +63,15 @@ namespace crossql.tests.Integration
             await db.Update(car);
 
             // assert update
-            actualCar = await db.Query<AutomobileModel>().Where(c => c.Vin == car.Vin).SingleAsync();
+            actualCar = await db.Query<Automobile>().Where(c => c.Vin == car.Vin).SingleAsync();
             actualCar.Should().NotBeNull();
             actualCar.Should().BeEquivalentTo(actualCar);
 
             // delete
-            await db.Delete<AutomobileModel>(c => c.Vin == car.Vin);
+            await db.Delete<Automobile>(c => c.Vin == car.Vin);
 
             // assert delete
-            actualCar = await db.Query<AutomobileModel>().Where(c => c.Vin == car.Vin).SingleOrDefaultAsync();
+            actualCar = await db.Query<Automobile>().Where(c => c.Vin == car.Vin).SingleOrDefaultAsync();
             actualCar.Should().BeNull();
         }
 
@@ -85,7 +85,7 @@ namespace crossql.tests.Integration
             await db.CreateOrUpdate(motorcycle);
 
             // assert create
-            var actualMotorcycle = await db.Query<AutomobileModel>().Where(c => c.Vin == motorcycle.Vin).SingleAsync();
+            var actualMotorcycle = await db.Query<Automobile>().Where(c => c.Vin == motorcycle.Vin).SingleAsync();
             actualMotorcycle.Should().NotBeNull();
             actualMotorcycle.Should().BeEquivalentTo(motorcycle);
 
@@ -94,16 +94,16 @@ namespace crossql.tests.Integration
             await db.CreateOrUpdate(motorcycle);
 
             // assert update
-            actualMotorcycle = await db.Query<AutomobileModel>().Where(c => c.Vin == motorcycle.Vin).SingleAsync();
+            actualMotorcycle = await db.Query<Automobile>().Where(c => c.Vin == motorcycle.Vin).SingleAsync();
             actualMotorcycle.Should().NotBeNull();
             actualMotorcycle.Should().BeEquivalentTo(actualMotorcycle);
             actualMotorcycle.VehicleType.Should().Be(motorcycle.VehicleType);
 
             // delete
-            await db.Delete<AutomobileModel>(c => c.Vin == motorcycle.Vin);
+            await db.Delete<Automobile>(c => c.Vin == motorcycle.Vin);
 
             // assert delete
-            actualMotorcycle = await db.Query<AutomobileModel>().Where(c => c.Vin == motorcycle.Vin).SingleOrDefaultAsync();
+            actualMotorcycle = await db.Query<Automobile>().Where(c => c.Vin == motorcycle.Vin).SingleOrDefaultAsync();
             actualMotorcycle.Should().BeNull();
         }
     }

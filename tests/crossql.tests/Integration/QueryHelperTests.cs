@@ -13,7 +13,7 @@ namespace crossql.tests.Integration
         public void Should_Throw_When_First_Is_Empty(IDbProvider db)
         {
             // execute
-            Func<Task<GooseModel>> method = async () => await db.Query<GooseModel>().FirstAsync();
+            Func<Task<GooseEntity>> method = async () => await db.Query<GooseEntity>().FirstAsync();
 
             // assert
             method.Should().Throw<InvalidOperationException>();
@@ -22,7 +22,7 @@ namespace crossql.tests.Integration
         public async Task Should_Return_Null_When_FirstOrDefault_Is_Empty(IDbProvider db)
         {
             // execute
-            var result = await db.Query<GooseModel>().FirstOrDefaultAsync();
+            var result = await db.Query<GooseEntity>().FirstOrDefaultAsync();
 
             // assert
             result.Should().BeNull();
@@ -32,7 +32,7 @@ namespace crossql.tests.Integration
         public void Should_Throw_When_Single_Is_Empty(IDbProvider db)
         {
             // execute
-            Func<Task<GooseModel>> method = async () => await db.Query<GooseModel>().SingleAsync();
+            Func<Task<GooseEntity>> method = async () => await db.Query<GooseEntity>().SingleAsync();
 
             // assert
             method.Should().Throw<InvalidOperationException>();
@@ -41,7 +41,7 @@ namespace crossql.tests.Integration
         public async Task Should_Return_Null_When_SingleOrDefault_Is_Empty(IDbProvider db)
         {
             // execute
-            var result = await db.Query<GooseModel>().SingleOrDefaultAsync();
+            var result = await db.Query<GooseEntity>().SingleOrDefaultAsync();
 
             // assert
             result.Should().BeNull();
@@ -51,7 +51,7 @@ namespace crossql.tests.Integration
         public void Should_Throw_When_Last_Is_Empty(IDbProvider db)
         {
             // execute
-            Func<Task<GooseModel>> method = async () => await db.Query<GooseModel>().LastAsync();
+            Func<Task<GooseEntity>> method = async () => await db.Query<GooseEntity>().LastAsync();
 
             // assert
             method.Should().Throw<InvalidOperationException>();
@@ -61,7 +61,7 @@ namespace crossql.tests.Integration
         public async Task Should_Return_Null_When_LastOrDefault_Is_Empty(IDbProvider db)
         {
             // execute
-            var result = await db.Query<GooseModel>().LastOrDefaultAsync();
+            var result = await db.Query<GooseEntity>().LastOrDefaultAsync();
 
             // assert
             result.Should().BeNull();
@@ -71,7 +71,7 @@ namespace crossql.tests.Integration
         public async Task Should_Return_Zero_Records_When_ToList_Is_Empty(IDbProvider db)
         {
             // execute
-            var result = await db.Query<GooseModel>().ToListAsync();
+            var result = await db.Query<GooseEntity>().ToListAsync();
 
             // assert
             result.Count.Should().Be(0);

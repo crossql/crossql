@@ -60,7 +60,7 @@ namespace crossql.tests.Integration
 
         private static void SetConfig(DbConfiguration cfg)
         {
-            cfg.Configure<AutomobileModel>(opts => opts.SetPrimaryKey(a => a.Vin));
+            cfg.Configure<Automobile>(opts => opts.SetPrimaryKey(a => a.Vin));
         }
     }
 }

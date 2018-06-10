@@ -5,34 +5,34 @@ namespace crossql.tests.Helpers.Fixtures
 {
     public class GooseFixture : FixtureBase
     {
-        public static GooseModel GetFirstGoose()
+        public static GooseEntity GetFirstGoose()
         {
-            return new GooseModel
+            return new GooseEntity
             {
                 Id = Guid.NewGuid(),
                 Name = "FirstGoose",
             };
         }
 
-        public static GooseModel GetGooseToUpdate()
+        public static GooseEntity GetGooseToUpdate()
         {
-            return new GooseModel
+            return new GooseEntity
             {
                 Id = Guid.NewGuid(),
                 Name = "GooseToUpdate",
             };
         }
 
-        public static GooseModel GetGooseToDelete()
+        public static GooseEntity GetGooseToDelete()
         {
-            return new GooseModel
+            return new GooseEntity
             {
                 Id = Guid.NewGuid(),
                 Name = "GooseToDelete",
             };
         }
 
-        public static GooseModel GooseToUpdate { get; set; }
-        public static GooseModel GooseToDelete { get; set; }
+        public static GooseEntity GooseToUpdate { get; set; }
+        public static GooseEntity GooseToDelete { get; set; }
     }
 }

@@ -1,6 +1,6 @@
 ﻿namespace crossql.tests.Helpers.Models
 {
-    public class AutomobileModel
+    public class Automobile
     {
         public string Vin { get; set; }
         public int WheelCount { get; set; }

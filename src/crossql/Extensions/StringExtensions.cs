@@ -7,8 +7,8 @@ namespace crossql.Extensions
     {
         public static string BuildTableName(this string value)
         {
-            var name = value.Replace("Model", "");
-            name = Regex.Replace(name, @"\`\d", "");
+            var name = value.Replace("Model", string.Empty).Replace("Entity",string.Empty);
+            name = Regex.Replace(name, @"\`\d", string.Empty);
             return name.Pluralize();
         }
     }

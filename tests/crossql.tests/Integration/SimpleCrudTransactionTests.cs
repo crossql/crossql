@@ -26,8 +26,8 @@ namespace crossql.tests.Integration
             });
 
             // assert create
-            var actualMotorcycle = await db.Query<AutomobileModel>().Where(a => a.Vin == motorcycle.Vin).SingleOrDefaultAsync();
-            var actualCar = await db.Query<AutomobileModel>().Where(a => a.Vin == car.Vin).SingleOrDefaultAsync();
+            var actualMotorcycle = await db.Query<Automobile>().Where(a => a.Vin == motorcycle.Vin).SingleOrDefaultAsync();
+            var actualCar = await db.Query<Automobile>().Where(a => a.Vin == car.Vin).SingleOrDefaultAsync();
             actualMotorcycle.Should().NotBeNull();
             actualCar.Should().NotBeNull();
 
@@ -41,8 +41,8 @@ namespace crossql.tests.Integration
             });
 
             // assert update
-            actualMotorcycle = await db.Query<AutomobileModel>().Where(a => a.Vin == motorcycle.Vin).SingleOrDefaultAsync();
-            actualCar = await db.Query<AutomobileModel>().Where(a => a.Vin == car.Vin).SingleOrDefaultAsync();
+            actualMotorcycle = await db.Query<Automobile>().Where(a => a.Vin == motorcycle.Vin).SingleOrDefaultAsync();
+            actualCar = await db.Query<Automobile>().Where(a => a.Vin == car.Vin).SingleOrDefaultAsync();
             actualMotorcycle.Should().NotBeNull();
             actualCar.Should().NotBeNull();
             actualMotorcycle.VehicleType.Should().Be(motorcycle.VehicleType);
@@ -51,13 +51,13 @@ namespace crossql.tests.Integration
             // delete
             await db.RunInTransaction(async transaction =>
             {
-                await transaction.Delete<AutomobileModel>(a => a.Vin == motorcycle.Vin);
-                await transaction.Delete<AutomobileModel>(a => a.Vin == car.Vin);
+                await transaction.Delete<Automobile>(a => a.Vin == motorcycle.Vin);
+                await transaction.Delete<Automobile>(a => a.Vin == car.Vin);
             });
 
             // assert delete
-            actualMotorcycle = await db.Query<AutomobileModel>().Where(a => a.Vin == motorcycle.Vin).SingleOrDefaultAsync();
-            actualCar = await db.Query<AutomobileModel>().Where(a => a.Vin == car.Vin).SingleOrDefaultAsync();
+            actualMotorcycle = await db.Query<Automobile>().Where(a => a.Vin == motorcycle.Vin).SingleOrDefaultAsync();
+            actualCar = await db.Query<Automobile>().Where(a => a.Vin == car.Vin).SingleOrDefaultAsync();
             actualMotorcycle.Should().BeNull();
             actualCar.Should().BeNull();
         }
@@ -96,7 +96,7 @@ namespace crossql.tests.Integration
             carWatch.ElapsedTicks.Should().BeLessThan(bikeWatch.ElapsedTicks);
 
             // assert record count
-            var vehicleCount = (await db.Query<AutomobileModel>().ToListAsync()).Count;
+            var vehicleCount = (await db.Query<Automobile>().ToListAsync()).Count;
             vehicleCount.Should().Be(1980);
 
             Trace.WriteLine($"Non Transactionable: {bikeWatch.Elapsed:hh\\:mm\\:ss} \t(Ticks {bikeWatch.ElapsedTicks})");

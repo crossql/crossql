@@ -25,37 +25,37 @@ namespace crossql.tests.Integration
             await db.Create(firstGoose);
             await db.Create(gooseToUpdate);
             await db.Create(gooseToDelete);
-            var actualGoose = await db.Query<GooseModel>().Where(goose => goose.Id == firstGoose.Id).FirstOrDefaultAsync();
+            var actualGoose = await db.Query<GooseEntity>().Where(goose => goose.Id == firstGoose.Id).FirstOrDefaultAsync();
             
             // Assert Create
             actualGoose.Should().NotBeNull();
             actualGoose.Should().BeEquivalentTo(firstGoose);
             
             // Execute Find IEnumerable
-            var actualGeese = await db.Query<GooseModel>().Where(x => x.Name.Contains("irst")).SelectAsync();
+            var actualGeese = await db.Query<GooseEntity>().Where(x => x.Name.Contains("irst")).SelectAsync();
             actualGeese.Should().NotBeNullOrEmpty();
             
             // Execute Find List
-            var actualGeese2 = (await db.Query<GooseModel>().Where(x => x.Name.Contains("Goose")).SelectAsync()).ToList();
+            var actualGeese2 = (await db.Query<GooseEntity>().Where(x => x.Name.Contains("Goose")).SelectAsync()).ToList();
             actualGeese2.Should().HaveCount(3);
             
             // Execute Update
             gooseToUpdate.Name = "Canada Goose";
             await db.Update(gooseToUpdate);
             
-            var actualUpdatedGoose = (await db.Query<GooseModel>().Where(x => x.Id == gooseToUpdate.Id).SelectAsync()).FirstOrDefault();
+            var actualUpdatedGoose = (await db.Query<GooseEntity>().Where(x => x.Id == gooseToUpdate.Id).SelectAsync()).FirstOrDefault();
             actualUpdatedGoose.Should().NotBeNull();
             actualUpdatedGoose.Should().BeEquivalentTo(gooseToUpdate);
             
             // Execute Delete
-            await db.Query<GooseModel>().Where(u => u.Id == gooseToDelete.Id).DeleteAsync();
-            var actualDeletedGoose = await db.Query<GooseModel>().Where(x => x.Id == gooseToDelete.Id).FirstOrDefaultAsync();
+            await db.Query<GooseEntity>().Where(u => u.Id == gooseToDelete.Id).DeleteAsync();
+            var actualDeletedGoose = await db.Query<GooseEntity>().Where(x => x.Id == gooseToDelete.Id).FirstOrDefaultAsync();
 
             actualDeletedGoose.Should().BeNull();
             
-            db.Query<GooseModel>().Truncate();
+            db.Query<GooseEntity>().Truncate();
             
-            var emptyResults = await db.Query<GooseModel>().SelectAsync();
+            var emptyResults = await db.Query<GooseEntity>().SelectAsync();
             emptyResults.Should().BeEmpty();
         }
     }

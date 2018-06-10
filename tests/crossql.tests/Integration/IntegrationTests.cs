@@ -124,9 +124,9 @@ namespace crossql.tests.Integration
             Trace.WriteLine(TraceObjectGraphInfo(db));
 
             // Execute Create
-            var firstGoose = new GooseModel { Id = new Guid("43F4C249-E24C-41A7-9DED-73E3AE2C17BE"), Name = "My New Goose" };
+            var firstGoose = new GooseEntity { Id = new Guid("43F4C249-E24C-41A7-9DED-73E3AE2C17BE"), Name = "My New Goose" };
             await db.Create(firstGoose);
-            var goose = await db.Query<GooseModel>().Where(u => u.Id == firstGoose.Id).FirstOrDefaultAsync();
+            var goose = await db.Query<GooseEntity>().Where(u => u.Id == firstGoose.Id).FirstOrDefaultAsync();
 
             // Assert Create
             Assert.IsNotNull(goose);
@@ -135,14 +135,14 @@ namespace crossql.tests.Integration
             Assert.AreNotEqual(Guid.Empty, goose.Id);
 
             // Execute Find IEnumerable
-            var actualGeese = await db.Query<GooseModel>().Where(x => x.Name.Contains("irst")).SelectAsync();
+            var actualGeese = await db.Query<GooseEntity>().Where(x => x.Name.Contains("irst")).SelectAsync();
             // this returns an IEnumerable
 
             // Assert Find IEnumerable
             Assert.True(actualGeese.Any());
 
             // Execute Find List
-            var actualGeese2 = await db.Query<GooseModel>().Where(x => x.Name.Contains("Goose")).ToListAsync();
+            var actualGeese2 = await db.Query<GooseEntity>().Where(x => x.Name.Contains("Goose")).ToListAsync();
 
             // Assert Find List
             Assert.True(actualGeese2.Count == 4);
@@ -151,7 +151,7 @@ namespace crossql.tests.Integration
             var gooseToUpdate = GooseFixture.GooseToUpdate;
             gooseToUpdate.Name = "Canada Goose";
             await db.Update(gooseToUpdate);
-            var actualUpdatedGoose = await db.Query<GooseModel>().Where(x => x.Id == gooseToUpdate.Id).FirstOrDefaultAsync();
+            var actualUpdatedGoose = await db.Query<GooseEntity>().Where(x => x.Id == gooseToUpdate.Id).FirstOrDefaultAsync();
 
             //// Assert Update
             Assert.IsNotNull(actualUpdatedGoose);
@@ -159,15 +159,15 @@ namespace crossql.tests.Integration
 
             // Execute Delete
             var gooseToDelete = GooseFixture.GooseToDelete;
-            await db.Query<GooseModel>().Where(u => u.Id == gooseToDelete.Id).DeleteAsync();
-            var actualDeletedGoose = db.Query<GooseModel>().Where(x => x.Id == gooseToDelete.Id).FirstOrDefaultAsync();
+            await db.Query<GooseEntity>().Where(u => u.Id == gooseToDelete.Id).DeleteAsync();
+            var actualDeletedGoose = db.Query<GooseEntity>().Where(x => x.Id == gooseToDelete.Id).FirstOrDefaultAsync();
 
             // Assert Delete
             Assert.IsNull(actualDeletedGoose);
 
-            db.Query<GooseModel>().Truncate();
+            db.Query<GooseEntity>().Truncate();
 
-            var emptyResults = await db.Query<GooseModel>().SelectAsync();
+            var emptyResults = await db.Query<GooseEntity>().SelectAsync();
             Assert.IsEmpty(emptyResults);
         }
 
