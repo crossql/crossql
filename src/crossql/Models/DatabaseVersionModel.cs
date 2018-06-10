@@ -1,7 +1,9 @@
 ﻿using System;
+using crossql.Attributes;
 
 namespace crossql.Models
 {
+    [TableName("__version")]
     public class DatabaseVersionModel
     {
         public int VersionNumber { get; set; }

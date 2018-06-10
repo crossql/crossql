@@ -56,7 +56,7 @@ namespace crossql
 
         private void VisitMemberAccess(MemberExpression expression)
         {
-            var tableName = expression.Expression.Type.Name.BuildTableName();
+            var tableName = expression.Expression.Type.BuildTableName();
             _strings.AppendFormat( "[{0}].[{1}]", tableName, expression.Member.Name );
         }
     }

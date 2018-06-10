@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Reflection;
 using System.Threading.Tasks;
 using crossql.Extensions;
 
@@ -24,7 +23,7 @@ namespace crossql
         public DbQuery(IDbProvider dbProvider, IDbMapper<TModel> dbMapper)
         {
             _dbMapper = dbMapper;
-            _tableName = typeof(TModel).GetTypeInfo().Name.BuildTableName();
+            _tableName = typeof(TModel).BuildTableName();
             _dbProvider = dbProvider;
             _parameters = new Dictionary<string, object>();
         }

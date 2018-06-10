@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Reflection;
 using System.Threading.Tasks;
 using crossql.Extensions;
 using crossql.Helpers;
@@ -25,7 +24,7 @@ namespace crossql
             const string joinFormat = "[{0}].[Id] == [{1}].[{2}Id]";
 
             _joinType = joinType;
-            _joinTableName = typeof(TJoinTo).GetTypeInfo().Name.BuildTableName();
+            _joinTableName = typeof(TJoinTo).BuildTableName();
             var joinExpression = string.Format(joinFormat, _tableName, _joinTableName, _tableName.Singularize());
             _joinExpression = BuildJoinExpression(joinType, joinExpression);
         }

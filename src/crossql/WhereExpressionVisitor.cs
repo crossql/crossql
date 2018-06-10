@@ -287,8 +287,7 @@ namespace crossql
             // there should only be two options. PropertyInfo or FieldInfo... let's extract the VALUE accordingly
             if ((memberExpression.Member as PropertyInfo) != null)
             {
-                var exp = memberExpression.Expression as MemberExpression;
-                if (exp != null)
+                if (memberExpression.Expression is MemberExpression exp)
                 {
                     var constantExpression = exp.Expression as ConstantExpression;
                     var fieldInfo = exp.Member as FieldInfo;
@@ -320,18 +319,16 @@ namespace crossql
 
         private string BuildTableName(Expression expression)
         {
-            var memberExpression = expression as MemberExpression;
-            if (memberExpression != null)
+            if (expression is MemberExpression memberExpression)
             {
                 return BuildTableName(memberExpression.Expression);
             }
-            return expression.Type.Name.BuildTableName();
+            return expression.Type.BuildTableName();
         }
 
         private string BuildColumnName(Expression expression)
         {
-            var memberExpression = expression as MemberExpression;
-            if (memberExpression != null)
+            if (expression is MemberExpression memberExpression)
             {
                 return BuildColumnName(memberExpression.Expression) + memberExpression.Member.Name;
             }
@@ -340,8 +337,7 @@ namespace crossql
 
         private void GetBinaryOperator(BinaryExpression expression)
         {
-            var exp = expression.Right as ConstantExpression;
-            if (exp != null && exp.Value.IsNull())
+            if (expression.Right is ConstantExpression exp && exp.Value.IsNull())
             {
                 switch (expression.NodeType)
                 {

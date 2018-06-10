@@ -21,7 +21,7 @@ namespace crossql.sqlite
 
         public override async Task CreateOrUpdate<TModel>(TModel model, IDbMapper<TModel> dbMapper)
         {
-            var tableName = typeof(TModel).GetTypeInfo().Name.BuildTableName();
+            var tableName = typeof(TModel).BuildTableName();
             var fieldNameList = dbMapper.FieldNames;
             var commandParams = dbMapper.BuildDbParametersFrom(model);
 

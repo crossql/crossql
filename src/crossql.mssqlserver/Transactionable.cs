@@ -24,7 +24,7 @@ namespace crossql.mssqlserver
         public override async Task CreateOrUpdate<TModel>(TModel model, IDbMapper<TModel> dbMapper)
         {
             var modelType = typeof(TModel);
-            var tableName = typeof(TModel).GetTypeInfo().Name.BuildTableName();
+            var tableName = typeof(TModel).BuildTableName();
             var fieldNameList = dbMapper.FieldNames;
             var commandParams = dbMapper.BuildDbParametersFrom(model);
 

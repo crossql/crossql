@@ -26,11 +26,11 @@ namespace crossql.Migrations
             }
 
             // Check if DatabaseVersion table is setup, if not, create it.
-            if (!await _dbProvider.CheckIfTableExists("DatabaseVersions").ConfigureAwait(false))
+            if (!await _dbProvider.CheckIfTableExists(WellKnownValues.VersionTableName).ConfigureAwait(false))
             {
                 var database = new Database(_dbProvider.DatabaseName, _dbProvider.Dialect);
 
-                var dbVersionTable = database.AddTable("DatabaseVersions");
+                var dbVersionTable = database.AddTable(WellKnownValues.VersionTableName);
                 dbVersionTable.AddColumn("VersionNumber", typeof (int)).PrimaryKey().Clustered().NotNullable();
                 dbVersionTable.AddColumn("MigrationDate", typeof (DateTime)).NotNullable();
                 dbVersionTable.AddColumn("IsBeforeMigrationComplete", typeof (bool)).NotNullable(true);
@@ -42,11 +42,11 @@ namespace crossql.Migrations
             else
             {
                 // Check if the new fields have bee added to the DatabaseVersion table yet, if not add them.
-                if (!await _dbProvider.CheckIfTableColumnExists("DatabaseVersions", "IsBeforeMigrationComplete").ConfigureAwait(false))
+                if (!await _dbProvider.CheckIfTableColumnExists(WellKnownValues.VersionTableName, "IsBeforeMigrationComplete").ConfigureAwait(false))
                 {
                     var database = new Database(_dbProvider.DatabaseName, _dbProvider.Dialect);
 
-                    var dbVersionTable = database.UpdateTable("DatabaseVersions");
+                    var dbVersionTable = database.UpdateTable(WellKnownValues.VersionTableName);
                     dbVersionTable.AddColumn("IsBeforeMigrationComplete", typeof (bool)).NotNullable(true);
                     dbVersionTable.AddColumn("IsMigrationComplete", typeof (bool)).NotNullable(true);
                     dbVersionTable.AddColumn("IsAfterMigrationComplete", typeof (bool)).NotNullable(true);

@@ -23,6 +23,23 @@ namespace crossql
             return this;
         }
 
+        protected virtual Expression VisitBinary(BinaryExpression binaryExpression)
+        {
+            if (binaryExpression.NodeType != ExpressionType.Equal) throw new ExpressionNotSupportedException(binaryExpression);
+
+            VisitExpression(binaryExpression.Left);
+            _strings.Append(" = ");
+            VisitExpression(binaryExpression.Right);
+
+            return binaryExpression;
+        }
+
+        private string BuildColumnName(Expression expression) =>
+            expression is MemberExpression memberExpression ? BuildColumnName(memberExpression.Expression) + memberExpression.Member.Name : "";
+
+        private string BuildTableName(Expression expression) =>
+            expression is MemberExpression memberExpression ? BuildTableName(memberExpression.Expression) : expression.Type.BuildTableName();
+
         private void VisitExpression(Expression expression)
         {
             if (expression == null)
@@ -37,20 +54,17 @@ namespace crossql
                     VisitMemberAccess((MemberExpression) expression);
                     return;
                 case ExpressionType.Convert:
-                    VisitUnary((UnaryExpression)expression);
+                    VisitUnary((UnaryExpression) expression);
                     return;
                 case ExpressionType.Equal:
-                    VisitBinary((BinaryExpression)expression);
+                    VisitBinary((BinaryExpression) expression);
                     return;
                 default:
                     throw new ExpressionNotSupportedException(expression);
             }
         }
 
-        private void VisitLambda(LambdaExpression expression)
-        {
-            Visit(expression.Body);
-        }
+        private void VisitLambda(LambdaExpression expression) => Visit(expression.Body);
 
         private void VisitMemberAccess(MemberExpression expression)
         {
@@ -59,41 +73,6 @@ namespace crossql
             _strings.AppendFormat("[{0}].[{1}]", tableName, columnName);
         }
 
-        private void VisitUnary(UnaryExpression expression)
-        {
-            Visit(expression.Operand);
-        }
-
-
-        protected virtual Expression VisitBinary(BinaryExpression binaryExpression)
-        {
-            if (binaryExpression.NodeType != ExpressionType.Equal)
-            {
-                throw new ExpressionNotSupportedException(binaryExpression);
-            }
-
-            VisitExpression(binaryExpression.Left);
-            _strings.Append(" = ");
-            VisitExpression(binaryExpression.Right);
-
-            return binaryExpression;
-        }
-
-        private string BuildTableName(Expression expression)
-        {
-            var memberExpression = expression as MemberExpression;
-            return memberExpression != null ? 
-                BuildTableName(memberExpression.Expression) : 
-                expression.Type.Name.BuildTableName();
-        }
-
-        private string BuildColumnName(Expression expression)
-        {
-            var memberExpression = expression as MemberExpression;
-            return memberExpression != null ? 
-                BuildColumnName(memberExpression.Expression) + memberExpression.Member.Name : 
-                "";
-        }
-
+        private void VisitUnary(UnaryExpression expression) => Visit(expression.Operand);
     }
 }

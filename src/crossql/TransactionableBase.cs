@@ -27,7 +27,7 @@ namespace crossql
 
         public async Task Create<TModel>(TModel model, IDbMapper<TModel> dbMapper) where TModel : class, new()
         {
-            var tableName = typeof(TModel).GetTypeInfo().Name.BuildTableName();
+            var tableName = typeof(TModel).BuildTableName();
             var fieldNameList = dbMapper.FieldNames;
             var commandParams = dbMapper.BuildDbParametersFrom(model);
 
@@ -47,7 +47,7 @@ namespace crossql
             var visitor = new WhereExpressionVisitor().Visit(expression);
 
             // this is a hard delete. soft deletes will happen in the repository layer.
-            var tableName = typeof(TModel).GetTypeInfo().Name.BuildTableName();
+            var tableName = typeof(TModel).BuildTableName();
             var whereClause = string.Format(Dialect.Where, visitor.WhereExpression);
             var commandText = string.Format(Dialect.DeleteFrom, tableName, whereClause);
 
@@ -77,7 +77,7 @@ namespace crossql
             var modelType = typeof(TModel);
             var identifierName = modelType.GetPrimaryKeyName();
 
-            var tableName = typeof(TModel).GetTypeInfo().Name.BuildTableName();
+            var tableName = typeof(TModel).BuildTableName();
             var fieldNameList = dbMapper.FieldNames;
             var commandParams = dbMapper.BuildDbParametersFrom(model);
 

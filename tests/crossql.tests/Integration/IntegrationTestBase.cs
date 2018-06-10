@@ -24,7 +24,7 @@ namespace crossql.tests.Integration
 
         public static IEnumerable<IDbProvider> SqliteOnly()
         {
-            var litecp = new sqlite.DbConnectionProvider(_testDbName);
+            var litecp = new sqlite.DbConnectionProvider($"{_testDbName}.sqlite3");
             yield return new SqliteDbProvider(litecp);
         }
 

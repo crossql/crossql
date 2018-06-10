@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
-using System.Reflection;
 using System.Threading.Tasks;
 using crossql.Extensions;
 
@@ -20,7 +19,7 @@ namespace crossql
         {
             _propertyName = GetPropertyName(propertyExpression);
             _dbProvider = dbProvider;
-            _tableName = typeof(TModel).GetTypeInfo().Name.BuildTableName();
+            _tableName = typeof(TModel).BuildTableName();
             _parameters = new Dictionary<string, object>();
         }
 
