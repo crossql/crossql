@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.Common;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -11,22 +10,21 @@ using crossql.Extensions;
 
 namespace crossql
 {
-    public abstract class TransactionBase : ITransactionable, IDisposable
+    public abstract class TransactionableBase : ITransactionable, ITransactionRunner, IDisposable
     {
-        protected readonly IDbConnection _connection;
-        protected readonly IDbTransaction _transaction;
-        protected readonly IDbCommand _command;
-        protected readonly IDialect _dialect;
+        protected readonly IDialect Dialect;
+        protected readonly IDbConnectionProvider Provider;
+        protected IDbCommand Command;
+        protected IDbConnection Connection;
+        protected IDbTransaction Transaction;
 
-        protected TransactionBase(IDbConnection connection, IDbTransaction transaction, IDbCommand command, IDialect dialect)
+        protected TransactionableBase(IDbConnectionProvider provider, IDialect dialect)
         {
-            _connection = connection;
-            _transaction = transaction;
-            _command = command;
-            _dialect = dialect;
+            Provider = provider;
+            Dialect = dialect;
         }
 
-        public Task Create<TModel>(TModel model) where TModel : class, new() => Create(model, new AutoDbMapper<TModel>());
+        public void Commit() => Transaction.Commit();
 
         public async Task Create<TModel>(TModel model, IDbMapper<TModel> dbMapper) where TModel : class, new()
         {
@@ -36,20 +34,14 @@ namespace crossql
 
             var parameters = "@" + string.Join(",@", fieldNameList);
             var fields = string.Join(",", fieldNameList);
-            var commandText = string.Format(_dialect.InsertInto, tableName, fields, parameters);
+            var commandText = string.Format(Dialect.InsertInto, tableName, fields, parameters);
 
             await ExecuteNonQuery(commandText, commandParams).ConfigureAwait(false);
 
             await UpdateManyToManyRelationsAsync(model, tableName, dbMapper).ConfigureAwait(false);
         }
 
-
-        public Task CreateOrUpdate<TModel>(TModel model) where TModel : class, new() => CreateOrUpdate(model, new AutoDbMapper<TModel>());
-
-        public virtual Task CreateOrUpdate<TModel>(TModel model, IDbMapper<TModel> dbMapper) where TModel : class, new()
-        {
-            throw new NotImplementedException("You cannot call CreateOrUpdate on TransactionBase");
-        }
+        public abstract Task CreateOrUpdate<TModel>(TModel model, IDbMapper<TModel> dbMapper) where TModel : class, new();
 
         public Task Delete<TModel>(Expression<Func<TModel, bool>> expression) where TModel : class, new()
         {
@@ -57,16 +49,31 @@ namespace crossql
 
             // this is a hard delete. soft deletes will happen in the repository layer.
             var tableName = typeof(TModel).GetTypeInfo().Name.BuildTableName();
-            var whereClause = string.Format(_dialect.Where, visitor.WhereExpression);
-            var commandText = string.Format(_dialect.DeleteFrom, tableName, whereClause);
+            var whereClause = string.Format(Dialect.Where, visitor.WhereExpression);
+            var commandText = string.Format(Dialect.DeleteFrom, tableName, whereClause);
 
-            return ExecuteNonQuery(commandText, visitor.Parameters);        }
+            return ExecuteNonQuery(commandText, visitor.Parameters);
+        }
 
-        public Task ExecuteNonQuery(string commandText) => ExecuteNonQuery(commandText, new Dictionary<string, object>());
+        public void Dispose()
+        {
+            Connection?.Dispose();
+            Transaction?.Dispose();
+            Command?.Dispose();
+        }
 
         public abstract Task ExecuteNonQuery(string commandText, IDictionary<string, object> parameters);
 
-        public Task Update<TModel>(TModel model) where TModel : class, new() => Update(model, new AutoDbMapper<TModel>());
+        public async Task Initialize(bool runInTransaction)
+        {
+            Connection = await Provider.GetOpenConnectionAsync();
+            Command = Connection.CreateCommand();
+
+            if (runInTransaction)
+                Transaction = Connection.BeginTransaction();
+        }
+
+        public void Rollback() => Transaction.Rollback();
 
         public async Task Update<TModel>(TModel model, IDbMapper<TModel> dbMapper) where TModel : class, new()
         {
@@ -78,18 +85,12 @@ namespace crossql
             var commandParams = dbMapper.BuildDbParametersFrom(model);
 
             var setFieldText = fieldNameList.Select(field => string.Format("[{0}] = @{0}", field)).ToList();
-            var whereClause = string.Format(_dialect.Where, string.Format("{0} = @{0}", identifierName));
-            var commandText = string.Format(_dialect.Update, tableName, string.Join(",", setFieldText),
+            var whereClause = string.Format(Dialect.Where, string.Format("{0} = @{0}", identifierName));
+            var commandText = string.Format(Dialect.Update, tableName, string.Join(",", setFieldText),
                 whereClause);
 
             await ExecuteNonQuery(commandText, commandParams).ConfigureAwait(false);
-            await UpdateManyToManyRelationsAsync(model, tableName, dbMapper).ConfigureAwait(false);        }
-
-        private static string GetJoinTableName(string tableName, string joinTableName)
-        {
-            var names = new[] {tableName, joinTableName};
-            Array.Sort(names, StringComparer.CurrentCulture);
-            return string.Join("_", names);
+            await UpdateManyToManyRelationsAsync(model, tableName, dbMapper).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -99,8 +100,7 @@ namespace crossql
         /// <param name="model">Actual object model</param>
         /// <param name="tableName">The name of the table</param>
         /// <param name="dbMapper">Used to map the data in the model object to parameters to be used in database calls</param>
-        protected async Task UpdateManyToManyRelationsAsync<TModel>(TModel model,
-            string tableName, IDbMapper<TModel> dbMapper) where TModel : class, new()
+        protected async Task UpdateManyToManyRelationsAsync<TModel>(TModel model, string tableName, IDbMapper<TModel> dbMapper) where TModel : class, new()
         {
             var primaryKey = model.GetType().GetPrimaryKeyName();
             var leftModel = dbMapper.BuildDbParametersFrom(model).FirstOrDefault(k => k.Key == primaryKey);
@@ -118,8 +118,8 @@ namespace crossql
                 //                }
 
                 var joinTableName = GetJoinTableName(tableName, collection.Name);
-                var deleteWhereClause = string.Format(_dialect.Where, string.Format("{0} = @{0}", leftKey));
-                var deleteCommandText = string.Format(_dialect.DeleteFrom, joinTableName, deleteWhereClause);
+                var deleteWhereClause = string.Format(Dialect.Where, string.Format("{0} = @{0}", leftKey));
+                var deleteCommandText = string.Format(Dialect.DeleteFrom, joinTableName, deleteWhereClause);
                 // Delete ALL records in the Join table associated with the `leftModel`
                 await ExecuteNonQuery(deleteCommandText, parameters).ConfigureAwait(false);
 
@@ -141,11 +141,11 @@ namespace crossql
                         var rightKey = manyToManyCollectionName + rightPropertyName;
                         var rightValue = rightProperty.GetValue(value, null);
                         parameters.Add("@" + rightKey, rightValue);
-                        var fieldsToInsert = string.Format(_dialect.JoinFields, leftKey, rightKey);
+                        var fieldsToInsert = string.Format(Dialect.JoinFields, leftKey, rightKey);
                         // "[{0}], [{1}]"
-                        var parametersToSet = string.Format(_dialect.JoinParameters, leftKey, rightKey);
+                        var parametersToSet = string.Format(Dialect.JoinParameters, leftKey, rightKey);
                         // "@{0}, @{1}"
-                        var insertCommandText = string.Format(_dialect.InsertInto, joinTableName,
+                        var insertCommandText = string.Format(Dialect.InsertInto, joinTableName,
                             fieldsToInsert,
                             parametersToSet);
                         await ExecuteNonQuery(insertCommandText, parameters).ConfigureAwait(false);
@@ -156,11 +156,11 @@ namespace crossql
             }
         }
 
-        public void Dispose()
+        private static string GetJoinTableName(string tableName, string joinTableName)
         {
-            _connection?.Dispose();
-            _transaction?.Dispose();
-            _command?.Dispose();
+            var names = new[] {tableName, joinTableName};
+            Array.Sort(names, StringComparer.CurrentCulture);
+            return string.Join("_", names);
         }
     }
 }

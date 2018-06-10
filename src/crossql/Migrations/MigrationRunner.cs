@@ -2,9 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using crossql.Extensions;
 using crossql.Models;
+using crossql.Internal;
 
-namespace crossql
+namespace crossql.Migrations
 {
     public class MigrationRunner : IMigrationRunner
     {
@@ -65,7 +67,7 @@ namespace crossql
             }
         }
 
-        public async Task RunAll(SystemRole systemRole, IList<CrossqlMigration> migrations)
+        public async Task RunAll(SystemRole systemRole, IList<IDbMigration> migrations)
         {
             _systemRole = systemRole;
 
@@ -83,7 +85,7 @@ namespace crossql
             }
         }
 
-        public async Task Run(SystemRole systemRole, CrossqlMigration migration)
+        public async Task Run(SystemRole systemRole, IDbMigration migration)
         {
             _systemRole = systemRole;
 
@@ -94,7 +96,7 @@ namespace crossql
             await RunAfterMigrationAsync(migration,  databaseVersion).ConfigureAwait(false);
         }
 
-        private async Task RunBeforeMigrationAsync(CrossqlMigration migration, DatabaseVersionModel databaseVersion)
+        private async Task RunBeforeMigrationAsync(IDbMigration migration, DatabaseVersionModel databaseVersion)
         {
             // Check Actual DatabaseVersion against the migration version
             // Don't run unless this Migrations BeforeMigration has not been run
@@ -122,7 +124,7 @@ namespace crossql
             }
         }
 
-        private async Task RunMigrationAsync(CrossqlMigration migration, DatabaseVersionModel databaseVersion)
+        private async Task RunMigrationAsync(IDbMigration migration, DatabaseVersionModel databaseVersion)
         {
             // Check Actual DatabaseVersion against the migration version
             // Don't run unless this Migrations Migration has not been run
@@ -149,7 +151,7 @@ namespace crossql
 
         }
 
-        private async Task RunAfterMigrationAsync(CrossqlMigration migration, DatabaseVersionModel databaseVersion)
+        private async Task RunAfterMigrationAsync(IDbMigration migration, DatabaseVersionModel databaseVersion)
         {
             // Check Actual DatabaseVersion against the migration version
             // Don't run unless the MigrationVersion is 1 more than DatabaseVersion
@@ -175,7 +177,7 @@ namespace crossql
             }
         }
 
-        private async Task<DatabaseVersionModel> GetMigrationInformationAsync(CrossqlMigration migration)
+        private async Task<DatabaseVersionModel> GetMigrationInformationAsync(IDbMigration migration)
         {
             var databaseVersions = await _dbProvider.Query<DatabaseVersionModel>()
                 .Where(dbv => dbv.VersionNumber == migration.MigrationVersion)

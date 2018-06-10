@@ -1,6 +1,6 @@
-﻿using System;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Threading.Tasks;
+using crossql.Extensions;
 using crossql.tests.Helpers.Fixtures;
 using crossql.tests.Helpers.Models;
 using FluentAssertions;

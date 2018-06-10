@@ -55,11 +55,18 @@ namespace crossql.sqlite
 
         public override async Task Create<TModel>(TModel model, IDbMapper<TModel> dbMapper)
         {
-            using (var connection = await _connectionProvider.GetOpenConnectionAsync().ConfigureAwait(false))
-            using (var command = connection.CreateCommand())
-            using(var transaction = new Transaction(connection, null,command, Dialect))
+            using (var transaction = new Transactionable(_connectionProvider, Dialect))
             {
-                await transaction.Create(model, dbMapper);
+                try
+                {
+                    await transaction.Create(model, dbMapper);
+                    transaction.Commit();
+                }
+                catch
+                {
+                    transaction.Rollback();
+                    throw;
+                }
             }
         }
 
@@ -125,11 +132,18 @@ namespace crossql.sqlite
 
         public override async Task Delete<TModel>(Expression<Func<TModel, bool>> expression)
         {
-            using (var connection = await _connectionProvider.GetOpenConnectionAsync().ConfigureAwait(false))
-            using(var command = connection.CreateCommand())
-            using (var transaction = new Transaction(connection, null,command, Dialect))
+            using (var transaction = new Transactionable(_connectionProvider, Dialect))
             {
-                await transaction.Delete(expression);
+                try
+                {
+                    await transaction.Delete(expression);
+                    transaction.Commit();
+                }
+                catch
+                {
+                    transaction.Rollback();
+                    throw;
+                }
             }
         }
 
@@ -152,11 +166,18 @@ namespace crossql.sqlite
 
         public override async Task Update<TModel>(TModel model, IDbMapper<TModel> dbMapper)
         {
-            using (var connection = await _connectionProvider.GetOpenConnectionAsync().ConfigureAwait(false))
-            using (var command = connection.CreateCommand())
-            using (var transaction = new Transaction(connection, null,command, Dialect))
+            using (var transaction = new Transactionable(_connectionProvider, Dialect))
             {
-                await transaction.Update(model, dbMapper);
+                try
+                {
+                    await transaction.Update(model, dbMapper);
+                    transaction.Commit();
+                }
+                catch
+                {
+                    transaction.Rollback();
+                    throw;
+                }
             }
         }
 
@@ -206,7 +227,7 @@ namespace crossql.sqlite
             //using (var trans = connection.BeginTransaction())
             //using (var command = connection.CreateCommand())
             //{
-            //    command.TransactionBase = trans;
+            //    command.TransactionableBase = trans;
             //    try
             //    {
             //        command.CommandType = CommandType.Text;

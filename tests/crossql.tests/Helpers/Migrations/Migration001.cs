@@ -1,10 +1,12 @@
 using System;
+using crossql.Extensions;
+using crossql.Migrations;
 using crossql.tests.Helpers.Fixtures;
 using crossql.tests.Helpers.Models;
 
 namespace crossql.tests.Helpers.Migrations
 {
-    public class Migration001 : CrossqlMigration
+    public class Migration001 : DbMigration
     {
         public static readonly Guid TheHobbitId = new Guid("E4BA6C4A-92BC-4B53-A833-680CEC3686DB");
         public static readonly Guid TheScrewTapeLettersId = new Guid("4C65C4BD-A87D-46E8-A39E-9B4D85078D52");

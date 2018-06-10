@@ -18,7 +18,7 @@ namespace crossql.mssqlserver
         private readonly IDbConnectionProvider _connectionProvider;
         private IDialect _dialect;
 
-        public DbProvider(IDbConnectionProvider connectionProvider, string databaseName) 
+        public DbProvider(IDbConnectionProvider connectionProvider, string databaseName)
         {
             DatabaseName = databaseName;
             _connectionProvider = connectionProvider;
@@ -34,21 +34,19 @@ namespace crossql.mssqlserver
 
         public override async Task CreateOrUpdate<TModel>(TModel model, IDbMapper<TModel> dbMapper)
         {
-            using (var connection = await _connectionProvider.GetOpenConnectionAsync().ConfigureAwait(false))
-            using (var command = connection.CreateCommand())
-            using (var transaction = new Transaction(connection, null, command, Dialect, DatabaseName))
+            using (var transaction = new Transactionable(_connectionProvider, Dialect, DatabaseName))
             {
-                await transaction.CreateOrUpdate(model, dbMapper);
+                    await transaction.Initialize(false);
+                    await transaction.CreateOrUpdate(model,dbMapper);
             }
         }
 
         public override async Task Delete<TModel>(Expression<Func<TModel, bool>> expression)
         {
-            using (var connection = await _connectionProvider.GetOpenConnectionAsync().ConfigureAwait(false))
-            using(var command = connection.CreateCommand())
-            using (var transaction = new Transaction(connection, null,command, Dialect,DatabaseName))
+            using (var transactionable = new Transactionable(_connectionProvider, Dialect, DatabaseName))
             {
-                await transaction.Delete(expression);
+                    await transactionable.Initialize(false);
+                    await transactionable.Delete(expression);
             }
         }
 
@@ -71,12 +69,19 @@ namespace crossql.mssqlserver
 
         public override async Task RunInTransaction(Func<ITransactionable, Task> dbChange)
         {
-            using (var connection = await _connectionProvider.GetOpenConnectionAsync().ConfigureAwait(false))
-            using (var trans = connection.BeginTransaction())
-            using (var command = connection.CreateCommand())
-            using (var transaction = new Transaction(connection, trans, command, Dialect, DatabaseName))
+            using (var transaction = new Transactionable(_connectionProvider, Dialect, DatabaseName))
             {
-                await dbChange(transaction);
+                try
+                {
+                    await transaction.Initialize(true);
+                    await dbChange(transaction);
+                    transaction.Commit();
+                }
+                catch
+                {
+                    transaction.Rollback();
+                    throw;
+                }
             }
         }
 
@@ -84,11 +89,10 @@ namespace crossql.mssqlserver
 
         public override async Task Create<TModel>(TModel model, IDbMapper<TModel> dbMapper)
         {
-            using (var connection = await _connectionProvider.GetOpenConnectionAsync().ConfigureAwait(false))
-            using (var command = connection.CreateCommand())
-            using (var transaction = new Transaction(connection, null, command, Dialect, DatabaseName))
+            using (var transaction = new Transactionable(_connectionProvider, Dialect, DatabaseName))
             {
-                await transaction.Create(model, dbMapper);
+                    await transaction.Initialize(false);
+                    await transaction.Create(model, dbMapper);
             }
         }
 
@@ -122,24 +126,30 @@ namespace crossql.mssqlserver
         public override Task ExecuteNonQuery(string commandText, IDictionary<string, object> parameters) => ExecuteNonQuery(_useStatement, commandText, parameters);
         public override async Task Update<TModel>(TModel model, IDbMapper<TModel> dbMapper)
         {
-            using (var connection = await _connectionProvider.GetOpenConnectionAsync().ConfigureAwait(false))
-            using (var command = connection.CreateCommand())
-            using (var transaction = new Transaction(connection, null,command, Dialect,DatabaseName))
+            using (var transaction = new Transactionable(_connectionProvider, Dialect, DatabaseName))
             {
-                await transaction.Update(model, dbMapper);
+
+                    await transaction.Initialize(false);
+                    await transaction.Update(model, dbMapper);
             }
         }
 
         private async Task ExecuteNonQuery(string useStatement, string commandText, IDictionary<string, object> parameters)
         {
-            using (var connection = await _connectionProvider.GetOpenConnectionAsync().ConfigureAwait(false))
-            using (var command = connection.CreateCommand())
-            using (var transaction = new Transaction(connection, null, command, Dialect, DatabaseName))
+            using (var transactionable = new Transactionable(_connectionProvider, Dialect, DatabaseName))
             {
-                if(string.IsNullOrWhiteSpace(useStatement))
-                    transaction.DisableUseStatement();
-                await transaction.ExecuteNonQuery(commandText, parameters);
-                transaction.EnableUseStatement();
+                try
+                {
+                    await transactionable.Initialize(false);
+                    if (string.IsNullOrWhiteSpace(useStatement))
+                        transactionable.DisableUseStatement();
+
+                    await transactionable.ExecuteNonQuery(commandText, parameters);
+                }
+                finally
+                {
+                    transactionable.EnableUseStatement();
+                }
             }
         }
 

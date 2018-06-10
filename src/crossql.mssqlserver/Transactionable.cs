@@ -9,12 +9,12 @@ using crossql.Extensions;
 
 namespace crossql.mssqlserver
 {
-    public class Transaction : TransactionBase
+    public class Transactionable : TransactionableBase
     {
         private readonly string _databaseName;
         private string _useStatement;
 
-        public Transaction(IDbConnection connection, IDbTransaction transaction,IDbCommand command, IDialect dialect, string databaseName) : base(connection, transaction,command, dialect)
+        public Transactionable(IDbConnectionProvider provider, IDialect dialect, string databaseName) : base(provider, dialect)
         {
             _databaseName = databaseName;
             EnableUseStatement();
@@ -30,15 +30,14 @@ namespace crossql.mssqlserver
             var insertParams = "@" + string.Join(",@", fieldNameList);
             var insertFields = string.Join(",", fieldNameList);
             var updateFields = string.Join(",", fieldNameList.Select(field => string.Format("[{0}] = @{0}", field)).ToList());
-            var whereClause = string.Format(_dialect.Where, string.Format("{0} = @{0}", modelType.GetPrimaryKeyName()));
+            var whereClause = string.Format(Dialect.Where, string.Format("{0} = @{0}", modelType.GetPrimaryKeyName()));
 
-            var commandText = string.Format(_dialect.CreateOrUpdate,
+            var commandText = string.Format(Dialect.CreateOrUpdate,
                 tableName,
                 updateFields,
                 whereClause,
                 insertFields,
                 insertParams);
-
             await ExecuteNonQuery(commandText, commandParams).ConfigureAwait(false);
             await UpdateManyToManyRelationsAsync(model, tableName, dbMapper).ConfigureAwait(false);
         }
@@ -48,24 +47,18 @@ namespace crossql.mssqlserver
         private async Task ExecuteNonQuery(string useStatement, string commandText, IDictionary<string, object> parameters)
         {
             await Task.Run(() => { 
-                if (_transaction != null) _command.Transaction = _transaction;
+                if (Transaction != null) Command.Transaction = Transaction;
 
-                _command.CommandType = CommandType.Text;
-                _command.CommandText = useStatement + commandText;
-                parameters.ForEach(param=> _command.Parameters.Add(new SqlParameter(param.Key, param.Value ?? DBNull.Value)));
+                Command.CommandType = CommandType.Text;
+                Command.CommandText = useStatement + commandText;
+                parameters.ForEach(param=> Command.Parameters.Add(new SqlParameter(param.Key, param.Value ?? DBNull.Value)));
             
-                _command.ExecuteNonQuery();
+                Command.ExecuteNonQuery();
             });
         }
 
-        internal void DisableUseStatement()
-        {
-            _useStatement = "";
+        internal void DisableUseStatement() => _useStatement = string.Empty;
 
-        }
-
-        internal void EnableUseStatement()
-        {
-            _useStatement = string.Format(_dialect.UseDatabase, _databaseName);        }
+        internal void EnableUseStatement() => _useStatement = string.Format(Dialect.UseDatabase, _databaseName);
     }
 }

@@ -3,6 +3,7 @@ using System.Configuration;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using crossql.Config;
+using crossql.Migrations;
 using crossql.tests.Helpers.Migrations;
 using crossql.tests.Helpers.Models;
 using NUnit.Framework;
@@ -37,7 +38,7 @@ namespace crossql.tests.Integration
                 // drop the database before running the tests again
                 await migrationRunner.DropDatabase();
                 
-                await migrationRunner.RunAll(SystemRole.Server, new List<CrossqlMigration>
+                await migrationRunner.RunAll(SystemRole.Server, new List<IDbMigration>
                 {
                     new Migration001(),
                     new Migration002(),

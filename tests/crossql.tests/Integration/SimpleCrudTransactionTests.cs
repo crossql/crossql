@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading.Tasks;
+using crossql.Extensions;
 using crossql.tests.Helpers.Fixtures;
 using crossql.tests.Helpers.Models;
 using FluentAssertions;
@@ -98,8 +99,8 @@ namespace crossql.tests.Integration
             var vehicleCount = (await db.Query<AutomobileModel>().ToListAsync()).Count;
             vehicleCount.Should().Be(1980);
 
-            Trace.WriteLine($"Non Transaction: {bikeWatch.Elapsed:hh\\:mm\\:ss} \t(Ticks {bikeWatch.ElapsedTicks})");
-            Trace.WriteLine($"Transaction: {carWatch.Elapsed:hh\\:mm\\:ss} \t\t(Ticks {carWatch.ElapsedTicks})");
+            Trace.WriteLine($"Non Transactionable: {bikeWatch.Elapsed:hh\\:mm\\:ss} \t(Ticks {bikeWatch.ElapsedTicks})");
+            Trace.WriteLine($"Transactionable: {carWatch.Elapsed:hh\\:mm\\:ss} \t\t(Ticks {carWatch.ElapsedTicks})");
         }
 
         [Test, TestCaseSource(nameof(DbProviders))]

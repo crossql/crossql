@@ -1,8 +1,9 @@
 using System;
+using crossql.Migrations;
 
 namespace crossql.tests.Helpers.Migrations
 {
-    public class Migration002 : CrossqlMigration
+    public class Migration002 : DbMigration
     {
         public Migration002():base(2)
         {

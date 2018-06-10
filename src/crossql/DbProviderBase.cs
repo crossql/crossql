@@ -34,14 +34,6 @@ namespace crossql
         /// </summary>
         /// <typeparam name="TModel">Model Type</typeparam>
         /// <param name="model">Model Object</param>
-        /// <returns>The uniqueidentifier (Guid) of the newly created record.</returns>
-        public Task Create<TModel>(TModel model) where TModel : class, new() => Create(model, new AutoDbMapper<TModel>());
-
-        /// <summary>
-        ///     Create a new record based on a Model
-        /// </summary>
-        /// <typeparam name="TModel">Model Type</typeparam>
-        /// <param name="model">Model Object</param>
         /// <param name="dbMapper"></param>
         /// <returns>The uniqueidentifier (Guid) of the newly created record.</returns>
         public abstract Task Create<TModel>(TModel model,
@@ -49,15 +41,6 @@ namespace crossql
             where TModel : class, new();
 
         public abstract Task CreateDatabase();
-
-
-        /// <summary>
-        ///     Update the record if it doesn't exist, otherwise create a new one.
-        /// </summary>
-        /// <typeparam name="TModel">Model type</typeparam>
-        /// <param name="model">Model Object to create or update</param>
-        public Task CreateOrUpdate<TModel>(TModel model) where TModel : class, new() => CreateOrUpdate(model, new AutoDbMapper<TModel>());
-
 
         /// <summary>
         ///     Update the record if it doesn't exist, otherwise create a new one.
@@ -84,9 +67,6 @@ namespace crossql
         public abstract IDialect Dialect { get; }
 
         public abstract Task DropDatabase();
-
-        // Used For Updates and Deletes
-        public Task ExecuteNonQuery(string commandText) => ExecuteNonQuery(commandText, new Dictionary<string, object>());
 
         public abstract Task ExecuteNonQuery(string commandText, IDictionary<string, object> parameters);
 
@@ -119,14 +99,6 @@ namespace crossql
         /// <returns>IEnumerable model</returns>
         public IDbScalar<TModel, TReturnType> Scalar<TModel, TReturnType>(Expression<Func<TModel, TReturnType>> propertyExpression)
             where TModel : class, new() => new DbScalar<TModel, TReturnType>(this, propertyExpression);
-
-
-        /// <summary>
-        ///     Update the Database Record of a specified model.
-        /// </summary>
-        /// <typeparam name="TModel">Model type</typeparam>
-        /// <param name="model">Model Object to update</param>
-        public Task Update<TModel>(TModel model) where TModel : class, new() => Update(model, new AutoDbMapper<TModel>());
 
         /// <summary>
         ///     Update the Database Record of a specified model.

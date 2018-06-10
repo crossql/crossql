@@ -5,16 +5,19 @@ using System.Threading.Tasks;
 
 namespace crossql
 {
+    public interface ITransactionRunner
+    {
+        Task Initialize(bool runInTransaction);
+        void Commit();
+        void Rollback();
+    }
+
     public interface ITransactionable
     {
-        Task Create<TModel>(TModel model) where TModel : class, new();
         Task Create<TModel>(TModel model, IDbMapper<TModel> dbMapper) where TModel : class, new();
-        Task CreateOrUpdate<TModel>(TModel model) where TModel : class, new();
         Task CreateOrUpdate<TModel>(TModel model, IDbMapper<TModel> dbMapper) where TModel : class, new();
         Task Delete<TModel>(Expression<Func<TModel, bool>> expression) where TModel : class, new();
-        Task ExecuteNonQuery(string commandText);
         Task ExecuteNonQuery(string commandText, IDictionary<string, object> parameters);
-        Task Update<TModel>(TModel model) where TModel : class, new();
         Task Update<TModel>(TModel model, IDbMapper<TModel> dbMapper) where TModel : class, new();
     }
 }
