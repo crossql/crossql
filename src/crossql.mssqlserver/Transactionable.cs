@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using crossql.Extensions;
+// ReSharper disable AccessToDisposedClosure
 
 namespace crossql.mssqlserver
 {

@@ -32,9 +32,16 @@ namespace crossql
         /// <param name="model">Model Object</param>
         /// <param name="dbMapper"></param>
         /// <returns>The uniqueidentifier (Guid) of the newly created record.</returns>
-        public abstract Task Create<TModel>(TModel model,
+        public async Task Create<TModel>(TModel model,
             IDbMapper<TModel> dbMapper)
-            where TModel : class, new();
+            where TModel : class, new()
+        {
+            using (var transaction = GetNewTransaction())
+            {
+                await transaction.Initialize(false);
+                await transaction.Create(model, dbMapper);
+            }
+        }
 
         public abstract Task CreateDatabase();
 
@@ -44,9 +51,16 @@ namespace crossql
         /// <typeparam name="TModel">Model type</typeparam>
         /// <param name="model">Model Object to create or update</param>
         /// <param name="dbMapper">Used to map the data in the model object to parameters to be used in database calls</param>
-        public abstract Task CreateOrUpdate<TModel>(TModel model,
+        public async Task CreateOrUpdate<TModel>(TModel model,
             IDbMapper<TModel> dbMapper)
-            where TModel : class, new();
+            where TModel : class, new()
+        {
+            using (var transaction = GetNewTransaction())
+            {
+                await transaction.Initialize(false);
+                await transaction.CreateOrUpdate(model,dbMapper);
+            }
+        }
 
         public string DatabaseName { get; protected set; }
 
@@ -56,8 +70,15 @@ namespace crossql
         /// <typeparam name="TModel">Model Type</typeparam>
         /// <param name="expression">The expression to use for the query</param>
         /// <remarks>THIS IS A HARD DELETE. When you run this method, the record is GONE!</remarks>
-        public abstract Task Delete<TModel>(Expression<Func<TModel, bool>> expression)
-            where TModel : class, new();
+        public async Task Delete<TModel>(Expression<Func<TModel, bool>> expression)
+            where TModel : class, new()
+        {
+            using (var transactionable = GetNewTransaction())
+            {
+                await transactionable.Initialize(false);
+                await transactionable.Delete(expression);
+            }
+        }
 
         // Database specific stuff
         public abstract IDialect Dialect { get; }
@@ -83,7 +104,16 @@ namespace crossql
         /// <typeparam name="TModel">Model Type</typeparam>
         /// <returns>IEnumerable model</returns>
         public IDbQuery<TModel> Query<TModel>() where TModel : class, new() => new DbQuery<TModel>(this, new AutoDbMapper<TModel>());
-        public abstract Task RunInTransaction(Func<ITransactionable, Task> dbChange);
+
+        public async Task RunInTransaction(Func<ITransactionable, Task> dbChange)
+        {
+            using (var transaction = GetNewTransaction())
+            {
+                await transaction.Initialize(true);
+                await dbChange(transaction);
+                transaction.Commit();
+            }
+        }
 
         /// <summary>
         ///     Query the Database for ALL records.
@@ -101,10 +131,16 @@ namespace crossql
         /// <typeparam name="TModel">Model type</typeparam>
         /// <param name="model">Model Object to update</param>
         /// <param name="dbMapper">Used to map the data in the model object to parameters to be used in database calls</param>
-        public abstract Task Update<TModel>(TModel model,
+        public async Task Update<TModel>(TModel model,
             IDbMapper<TModel> dbMapper)
-            where TModel : class, new();
-
+            where TModel : class, new()
+        {
+            using (var transaction = GetNewTransaction())
+            {
+                await transaction.Initialize(false);
+                await transaction.Update(model, dbMapper);
+            }
+        }
         
         /// <summary>
         ///     Updates all Join Tables based on the <see cref="ManyToManyAttribute" />
@@ -176,5 +212,7 @@ namespace crossql
             Array.Sort(names, StringComparer.CurrentCulture);
             return string.Join("_", names);
         }
+
+        protected abstract TransactionableBase GetNewTransaction();
     }
 }

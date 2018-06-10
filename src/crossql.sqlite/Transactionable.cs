@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 using crossql.Extensions;
 using Microsoft.Data.Sqlite;
 
+// ReSharper disable AccessToDisposedClosure
+
 namespace crossql.sqlite
 {
     public class Transactionable : TransactionableBase
@@ -28,11 +30,12 @@ namespace crossql.sqlite
             var commandText = string.Format(Dialect.CreateOrUpdate, tableName, fields, parameters);
 
             await ExecuteNonQuery(commandText, commandParams).ConfigureAwait(false);
-            await UpdateManyToManyRelationsAsync(model, tableName, dbMapper).ConfigureAwait(false);        }
+            await UpdateManyToManyRelationsAsync(model, tableName, dbMapper).ConfigureAwait(false);
+        }
 
         public override async Task ExecuteNonQuery(string commandText, IDictionary<string, object> parameters)
         {
-            using (var command = (SqliteCommand)Connection.CreateCommand())
+            using (var command = (SqliteCommand) Connection.CreateCommand())
             {
                 if (Transaction != null) command.Transaction = (SqliteTransaction) Transaction;
 
