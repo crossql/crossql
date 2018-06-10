@@ -8,7 +8,7 @@ using Microsoft.Data.Sqlite;
 
 namespace crossql.sqlite
 {
-    public class Transactionable:TransactionableBase
+    public class Transactionable : TransactionableBase
     {
         private readonly SqliteSettings _settings;
 
@@ -34,6 +34,8 @@ namespace crossql.sqlite
         {
             using (var command = (SqliteCommand)Connection.CreateCommand())
             {
+                if (Transaction != null) command.Transaction = (SqliteTransaction) Transaction;
+
                 command.CommandType = CommandType.Text;
                 EnableForeignKeys(command);
                 command.CommandText = commandText;
@@ -42,7 +44,15 @@ namespace crossql.sqlite
                         command.Parameters.Add(new SqliteParameter(parameter.Key,
                             parameter.Value ?? DBNull.Value)));
 
-                await command.ExecuteNonQueryAsync().ConfigureAwait(false);
+                try
+                {
+                    await command.ExecuteNonQueryAsync().ConfigureAwait(false);
+                }
+                catch
+                {
+                    Transaction?.Rollback();
+                    throw;
+                }
             }
         }
 

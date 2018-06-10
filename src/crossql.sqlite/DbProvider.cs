@@ -25,6 +25,7 @@ namespace crossql.sqlite
             command.CommandText = "PRAGMA foreign_keys=ON";
             command.ExecuteNonQuery();
         }
+
         public DbProvider(IDbConnectionProvider connectionProvider):this(connectionProvider,new SqliteSettings())
         {
         }
@@ -125,18 +126,11 @@ namespace crossql.sqlite
         {
             using (var transaction = new Transactionable(_connectionProvider, Dialect, _settings))
             {
-                try
-                {
-                    await transaction.Initialize(true);
-                    await dbChange(transaction);
-                    transaction.Commit();
-                }
-                catch
-                {
-                    transaction.Rollback();
-                    throw;
-                }
-            }        }
+                await transaction.Initialize(true);
+                await dbChange(transaction);
+                transaction.Commit();
+            }
+        }
 
         public override async Task ExecuteNonQuery(string commandText, IDictionary<string, object> parameters)
         {

@@ -1,17 +1,37 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using crossql.Extensions;
 using crossql.tests.Helpers.Fixtures;
 using crossql.tests.Helpers.Models;
 using FluentAssertions;
+using Microsoft.Data.Sqlite;
 using NUnit.Framework;
 
 namespace crossql.tests.Integration
 {
     public class SimpleCrudTransactionTests : IntegrationTestBase
     {
-        [Test, TestCaseSource(nameof(DbProviders))]
+        [Test]
+        [TestCaseSource(nameof(DbProviders))]
+        public async Task Should_Create_Records_With_AutoIncrement(IDbProvider db)
+        {
+            Trace.WriteLine(TraceObjectGraphInfo(db));
+
+            // setup
+            var foos = new List<FooModel>();
+            for (var i = 1; i < 21; i++) foos.Add(new FooModel {Name = $"Name-{i}"});
+
+            // execute
+            foreach (var foo in foos) await db.Create(foo);
+            var actualFoos = await db.Query<FooModel>().ToListAsync();
+            actualFoos.Count.Should().Be(20);
+        }
+
+        [Test]
+        [TestCaseSource(nameof(DbProviders))]
         public async Task Should_Do_CUD_In_Transactions(IDbProvider db)
         {
             Trace.WriteLine(TraceObjectGraphInfo(db));
@@ -62,7 +82,8 @@ namespace crossql.tests.Integration
             actualCar.Should().BeNull();
         }
 
-        [Test, TestCaseSource(nameof(DbProviders))]
+        [Test]
+        [TestCaseSource(nameof(DbProviders))]
         public async Task Should_Perform_Faster_When_Run_In_Transaction(IDbProvider db)
         {
             Trace.WriteLine(TraceObjectGraphInfo(db));
@@ -92,6 +113,7 @@ namespace crossql.tests.Integration
                 motorcycle.Vin = i.ToString();
                 await db.CreateOrUpdate(motorcycle);
             }
+
             bikeWatch.Stop();
             carWatch.ElapsedTicks.Should().BeLessThan(bikeWatch.ElapsedTicks);
 
@@ -103,25 +125,28 @@ namespace crossql.tests.Integration
             Trace.WriteLine($"Transactionable: {carWatch.Elapsed:hh\\:mm\\:ss} \t\t(Ticks {carWatch.ElapsedTicks})");
         }
 
-        [Test, TestCaseSource(nameof(DbProviders))]
-        public async Task Should_Create_Records_With_AutoIncrement(IDbProvider db)
+        [Test]
+        [TestCaseSource(nameof(DbProviders))]
+        public async Task ShouldRollBackFailedTransaction(IDbProvider db)
         {
             Trace.WriteLine(TraceObjectGraphInfo(db));
 
             // setup
-            var foos = new List<FooModel>();
-            for (var i = 1; i < 21; i++)
+            var truck = AutomobileFixture.GetTruck();
+            Func<Task> action = async () => await db.RunInTransaction(async transaction =>
             {
-                foos.Add(new FooModel { Name = $"Name-{i}" });
-            }
+                await transaction.Create(truck); // even though this doesn't fail, it should be rolled back in the transaction.
+                await transaction.ExecuteNonQuery("INVALID SQL QUERY");
+            });
+
+            // assert throws
+            action.Should().Throw<Exception>();
 
             // execute
-            foreach (var foo in foos)
-            {
-                await db.Create(foo);
-            }
-            var actualFoos = await db.Query<FooModel>().ToListAsync();
-            actualFoos.Count.Should().Be(20);
+            var actualTruck = await db.Query<Automobile>().Where(a => a.Vin == truck.Vin).FirstOrDefaultAsync();
+
+            // assert null
+            actualTruck.Should().BeNull();
         }
     }
 }

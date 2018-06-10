@@ -13,6 +13,7 @@ namespace crossql.tests.Helpers.Fixtures
                 VehicleType = "Car"
             };
         }
+
         public static Automobile GetMotorcycle()
         {
             return new Automobile
@@ -20,6 +21,16 @@ namespace crossql.tests.Helpers.Fixtures
                 Vin = "85AD5224-074C-4EB6-A778-A8C5ED2E24EC",
                 WheelCount = 2,
                 VehicleType = "Motorcycle"
+            };
+        }
+
+        public static Automobile GetTruck()
+        {
+            return new Automobile
+            {
+                Vin = "A5A09685-88EC-4B54-9705-959051EEAA65",
+                WheelCount = 6,
+                VehicleType = "Super Duty Dually"
             };
         }
     }

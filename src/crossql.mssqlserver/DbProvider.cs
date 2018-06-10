@@ -51,17 +51,9 @@ namespace crossql.mssqlserver
         {
             using (var transaction = new Transactionable(_connectionProvider, Dialect, DatabaseName))
             {
-                try
-                {
-                    await transaction.Initialize(true);
-                    await dbChange(transaction);
-                    transaction.Commit();
-                }
-                catch
-                {
-                    transaction.Rollback();
-                    throw;
-                }
+                await transaction.Initialize(true);
+                await dbChange(transaction);
+                transaction.Commit();
             }
         }
 

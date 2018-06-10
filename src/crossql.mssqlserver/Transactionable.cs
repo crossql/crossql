@@ -21,7 +21,7 @@ namespace crossql.mssqlserver
         }
 
         public override async Task CreateOrUpdate<TModel>(TModel model, IDbMapper<TModel> dbMapper)
-        {  
+        {
             var modelType = typeof(TModel);
             var tableName = typeof(TModel).GetTypeInfo().Name.BuildTableName();
             var fieldNameList = dbMapper.FieldNames;
@@ -46,18 +46,25 @@ namespace crossql.mssqlserver
 
         private Task ExecuteNonQuery(string useStatement, string commandText, IDictionary<string, object> parameters)
         {
-            return Task.Run(() => {
-                using (var command = Connection.CreateCommand())
+            using (var command = Connection.CreateCommand())
+            {
+                if (Transaction != null) command.Transaction = Transaction;
+
+                command.CommandType = CommandType.Text;
+                command.CommandText = useStatement + commandText;
+                parameters.ForEach(param => command.Parameters.Add(new SqlParameter(param.Key, param.Value ?? DBNull.Value)));
+
+                try
                 {
-                    if (Transaction != null) command.Transaction = Transaction;
-
-                    command.CommandType = CommandType.Text;
-                    command.CommandText = useStatement + commandText;
-                    parameters.ForEach(param => command.Parameters.Add(new SqlParameter(param.Key, param.Value ?? DBNull.Value)));
-
                     command.ExecuteNonQuery();
                 }
-            });
+                catch
+                {
+                    Transaction?.Rollback();
+                    throw;
+                }
+            }
+            return Task.CompletedTask;
         }
 
         internal void DisableUseStatement() => _useStatement = string.Empty;
