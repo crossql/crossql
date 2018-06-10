@@ -5,12 +5,14 @@ namespace crossql.tests.Unit
     {
         public static IEnumerable<IDbProvider> Repositories()
         {
-            var mscp = new mssqlserver.DbConnectionProvider(null, null);
-            var litecp = new sqlite.DbConnectionProvider("foo");
-            var sqlServerDbProvider = new mssqlserver.DbProvider(mscp, "foo");
-            var sqliteDbProvider = new sqlite.DbProvider(litecp);
+            const string dbName = "foo";
+            var mssqlConnectionProvider = new mssqlserver.DbConnectionProvider(null, null);
+            var sqliteConnectionProvider = new sqlite.DbConnectionProvider(dbName);
 
-            yield return sqlServerDbProvider;
+            var mssqlDbProvider = new mssqlserver.DbProvider(mssqlConnectionProvider, dbName);
+            var sqliteDbProvider = new sqlite.DbProvider(sqliteConnectionProvider);
+
+            yield return mssqlDbProvider;
             yield return sqliteDbProvider;
         }
     }
