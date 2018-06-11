@@ -29,7 +29,7 @@ namespace crossql.mssqlserver
         public sealed override IDialect Dialect => _dialect ?? (_dialect = new SqlServerDialect());
 
         public override async Task<bool> CheckIfDatabaseExists() =>
-            await ExecuteScalarAsync<int>("", string.Format(Dialect.CheckDatabaseExists, DatabaseName)).ConfigureAwait(false) == 1;
+            await ExecuteScalar<int>("", string.Format(Dialect.CheckDatabaseExists, DatabaseName)).ConfigureAwait(false) == 1;
 
         public override async Task<bool> CheckIfTableColumnExists(string tableName, string columnName) =>
             await ExecuteScalar<int>(string.Format(Dialect.CheckTableColumnExists, tableName, columnName)).ConfigureAwait(false) == 1;
@@ -47,9 +47,11 @@ namespace crossql.mssqlserver
             ExecuteReader(_useStatement, commandText, parameters, readerMapper);
 
         public override Task<TKey> ExecuteScalar<TKey>(string commandText, IDictionary<string, object> parameters) =>
-            ExecuteScalarAsync<TKey>(_useStatement, commandText, parameters);
+            ExecuteScalar<TKey>(_useStatement, commandText, parameters);
 
         protected override TransactionableBase GetNewTransaction() => new Transactionable(_connectionProvider, Dialect, DatabaseName);
+
+        private static SqlParameter CreateSqlParameter(KeyValuePair<string, object> parameter) => new SqlParameter(parameter.Key, parameter.Value ?? DBNull.Value);
 
         private async Task ExecuteNonQuery(string useStatement, string commandText, IDictionary<string, object> parameters)
         {
@@ -78,7 +80,7 @@ namespace crossql.mssqlserver
             {
                 command.CommandType = CommandType.Text;
                 command.CommandText = useStatement + commandText;
-                parameters.ForEach(parameter => command.Parameters.Add(new SqlParameter(parameter.Key, parameter.Value ?? DBNull.Value)));
+                parameters.ForEach(p => command.Parameters.Add(CreateSqlParameter(p)));
                 TResult result;
                 using (var reader = command.ExecuteReader())
                 {
@@ -89,19 +91,17 @@ namespace crossql.mssqlserver
             }
         }
 
-        private Task<TKey> ExecuteScalarAsync<TKey>(string useStatement, string commandText) =>
-            ExecuteScalarAsync<TKey>(useStatement, commandText, new Dictionary<string, object>());
+        private Task<TKey> ExecuteScalar<TKey>(string useStatement, string commandText) =>
+            ExecuteScalar<TKey>(useStatement, commandText, new Dictionary<string, object>());
 
-        private async Task<TKey> ExecuteScalarAsync<TKey>(string useStatement, string commandText, IEnumerable<KeyValuePair<string, object>> parameters)
+        private async Task<TKey> ExecuteScalar<TKey>(string useStatement, string commandText, IEnumerable<KeyValuePair<string, object>> parameters)
         {
             using (var connection = await _connectionProvider.GetOpenConnection().ConfigureAwait(false))
             using (var command = connection.CreateCommand())
             {
                 command.CommandType = CommandType.Text;
                 command.CommandText = useStatement + commandText;
-                parameters.ForEach(
-                    parameter =>
-                        command.Parameters.Add(new SqlParameter(parameter.Key, parameter.Value ?? DBNull.Value)));
+                parameters.ForEach(p => command.Parameters.Add(CreateSqlParameter(p)));
 
                 var result = command.ExecuteScalar();
                 if (typeof(TKey) == typeof(int))
