@@ -23,6 +23,8 @@ namespace crossql.sqlite
 
         public DbProvider(IDbConnectionProvider connectionProvider, SqliteSettings settings) : this(connectionProvider, settings, null) { }
 
+        public DbProvider(IDbConnectionProvider connectionProvider, Action<DbConfiguration> config) : this(connectionProvider, SqliteSettings.Default, config) { }
+
         public DbProvider(IDbConnectionProvider connectionProvider, SqliteSettings settings, Action<DbConfiguration> config) : base(config)
         {
             _settings = settings;
@@ -76,10 +78,7 @@ namespace crossql.sqlite
                 command.CommandType = CommandType.Text;
                 EnableForeignKeys(command);
                 command.CommandText = commandText;
-                parameters.ForEach(
-                    parameter =>
-                        command.Parameters.Add(new SqliteParameter(parameter.Key,
-                            parameter.Value ?? DBNull.Value)));
+                parameters.ForEach(p => command.Parameters.Add(CreateParameter(p)));
 
                 using (var reader = await command.ExecuteReaderAsync())
                 {
@@ -96,10 +95,8 @@ namespace crossql.sqlite
                 command.CommandType = CommandType.Text;
                 EnableForeignKeys(command);
                 command.CommandText = commandText;
-                parameters.ForEach(
-                    parameter =>
-                        command.Parameters.Add(new SqliteParameter(parameter.Key,
-                            parameter.Value ?? DBNull.Value)));
+
+                parameters.ForEach(p => command.Parameters.Add(CreateParameter(p)));
 
                 var result = await command.ExecuteScalarAsync().ConfigureAwait(false);
                 if (typeof(TKey) == typeof(Guid)) return (TKey) (object) new Guid((byte[]) result);
@@ -121,6 +118,9 @@ namespace crossql.sqlite
         }
 
         protected override TransactionableBase GetNewTransaction() => new Transactionable(_connectionProvider, Dialect, _settings);
+
+        private static SqliteParameter CreateParameter(KeyValuePair<string, object> parameter) => new SqliteParameter(parameter.Key,
+            parameter.Value ?? DBNull.Value);
 
         private void EnableForeignKeys(IDbCommand command)
         {

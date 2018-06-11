@@ -8,17 +8,22 @@ namespace crossql.sqlite
 {
     public class DbConnectionProvider : IDbConnectionProvider
     {
+        private static readonly Func<string, string> _defaultSetupDbPath = s => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), s);
         private readonly string _connectionString;
-        private static readonly Func<string, string> _defaultSetupDbPath = s=>Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), s);
-        
+
         public DbConnectionProvider(string sqlFile) : this(sqlFile, SqliteSettings.Default, _defaultSetupDbPath) { }
-        public DbConnectionProvider(string sqlFile,SqliteSettings sqliteSettings) : this(sqlFile, sqliteSettings, _defaultSetupDbPath) { }
-        public DbConnectionProvider(string sqlFile, Func<string,string> setupDbPath) : this(sqlFile, SqliteSettings.Default, setupDbPath) { }
+        public DbConnectionProvider(string sqlFile, SqliteSettings sqliteSettings) : this(sqlFile, sqliteSettings, _defaultSetupDbPath) { }
+        public DbConnectionProvider(string sqlFile, Func<string, string> setupDbPath) : this(sqlFile, SqliteSettings.Default, setupDbPath) { }
 
         public DbConnectionProvider(string sqlFile, SqliteSettings sqliteSettings, Func<string, string> setupDbPath)
         {
             DatabasePath = setupDbPath.Invoke(sqlFile);
-            var sqliteConnectionStringBuilder = new SqliteConnectionStringBuilder($"Data Source={DatabasePath}");
+            var sqliteConnectionStringBuilder = new SqliteConnectionStringBuilder($"Data Source={DatabasePath}")
+            {
+                Cache = sqliteSettings.Cache,
+                Mode = sqliteSettings.Mode,
+                BrowsableConnectionString = sqliteSettings.BrowsableConnectionString
+            };
 
             _connectionString = sqliteConnectionStringBuilder.ConnectionString;
         }
