@@ -9,7 +9,7 @@
     <AssemblyFileVersion>1.0.0.0</AssemblyFileVersion>
     <Version>1.0.0.0</Version>
     <PackageVersion>1.0.0.0</PackageVersion>
-    <Authors>Chase Florell</Authors>
+    <Authors>Chase Florell, Keith Larsen</Authors>
     <PackageId>crossql</PackageId>
     <PackOnBuild>true</PackOnBuild>
     <PackageIconUrl></PackageIconUrl>
