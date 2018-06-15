@@ -1,13 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using crossql.Extensions;
 using crossql.tests.Helpers.Fixtures;
 using crossql.tests.Helpers.Models;
 using FluentAssertions;
-using Microsoft.Data.Sqlite;
 using NUnit.Framework;
 
 namespace crossql.tests.Integration
@@ -25,7 +23,10 @@ namespace crossql.tests.Integration
             for (var i = 1; i < 21; i++) foos.Add(new FooModel {Name = $"Name-{i}"});
 
             // execute
-            foreach (var foo in foos) await db.Create(foo);
+            await db.RunInTransaction(async trans => { 
+                foreach (var foo in foos) 
+                    await trans.Create(foo).ConfigureAwait(false);
+            });
             var actualFoos = await db.Query<FooModel>().ToListAsync();
             actualFoos.Count.Should().Be(20);
         }

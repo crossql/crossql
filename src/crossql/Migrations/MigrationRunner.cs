@@ -78,9 +78,9 @@ namespace crossql.Migrations
             {
                 var databaseVersion = await GetMigrationInformationAsync(migration).ConfigureAwait(false);
 
-                await RunBeforeMigrationAsync(migration,  databaseVersion).ConfigureAwait(false);
-                await RunMigrationAsync(migration,  databaseVersion).ConfigureAwait(false);
-                await RunAfterMigrationAsync(migration,  databaseVersion).ConfigureAwait(false);
+                await RunBeforeMigration(migration,  databaseVersion).ConfigureAwait(false);
+                await RunMigration(migration,  databaseVersion).ConfigureAwait(false);
+                await RunAfterMigration(migration,  databaseVersion).ConfigureAwait(false);
             }
         }
 
@@ -90,12 +90,12 @@ namespace crossql.Migrations
 
             var databaseVersion = await GetMigrationInformationAsync(migration).ConfigureAwait(false);
 
-            await RunBeforeMigrationAsync(migration,  databaseVersion).ConfigureAwait(false);
-            await RunMigrationAsync(migration,  databaseVersion).ConfigureAwait(false);
-            await RunAfterMigrationAsync(migration,  databaseVersion).ConfigureAwait(false);
+            await RunBeforeMigration(migration,  databaseVersion).ConfigureAwait(false);
+            await RunMigration(migration,  databaseVersion).ConfigureAwait(false);
+            await RunAfterMigration(migration,  databaseVersion).ConfigureAwait(false);
         }
 
-        private async Task RunBeforeMigrationAsync(IDbMigration migration, DatabaseVersionModel databaseVersion)
+        private async Task RunBeforeMigration(IDbMigration migration, DatabaseVersionModel databaseVersion)
         {
             // Check Actual DatabaseVersion against the migration version
             // Don't run unless this Migrations BeforeMigration has not been run
@@ -103,40 +103,40 @@ namespace crossql.Migrations
             {
                 // Before Migrate
 
-                await migration.RunOrderedMigrationAsync(MigrationStep.Setup, _dbProvider).ConfigureAwait(false);
+                await migration.RunOrderedMigration(MigrationStep.Setup, _dbProvider).ConfigureAwait(false);
 
                 if (_systemRole == SystemRole.Server)
                 {
-                    await migration.RunOrderedMigrationAsync(MigrationStep.ServerSetup, _dbProvider).ConfigureAwait(false);
+                    await migration.RunOrderedMigration(MigrationStep.ServerSetup, _dbProvider).ConfigureAwait(false);
                 }
                 if (_systemRole == SystemRole.Client)
                 {
-                    await migration.RunOrderedMigrationAsync(MigrationStep.ClientSetup, _dbProvider).ConfigureAwait(false);
+                    await migration.RunOrderedMigration(MigrationStep.ClientSetup, _dbProvider).ConfigureAwait(false);
                 }
 
                 // Update the database version to show the before migration has been run
                 databaseVersion.IsBeforeMigrationComplete = true;
                 await _dbProvider.Query<DatabaseVersionModel>()
                     .Where(dbv => dbv.VersionNumber == migration.MigrationVersion)
-                    .UpdateAsync(databaseVersion)
+                    .Update(databaseVersion)
                     .ConfigureAwait(false);
             }
         }
 
-        private async Task RunMigrationAsync(IDbMigration migration, DatabaseVersionModel databaseVersion)
+        private async Task RunMigration(IDbMigration migration, DatabaseVersionModel databaseVersion)
         {
             // Check Actual DatabaseVersion against the migration version
             // Don't run unless this Migrations Migration has not been run
             if (databaseVersion.IsMigrationComplete == false)
             {
-                await migration.RunOrderedMigrationAsync(MigrationStep.Migrate, _dbProvider).ConfigureAwait(false);
+                await migration.RunOrderedMigration(MigrationStep.Migrate, _dbProvider).ConfigureAwait(false);
 
                 switch (_systemRole) {
                     case SystemRole.Server:
-                        await migration.RunOrderedMigrationAsync(MigrationStep.ServerMigrate, _dbProvider).ConfigureAwait(false);
+                        await migration.RunOrderedMigration(MigrationStep.ServerMigrate, _dbProvider).ConfigureAwait(false);
                         break;
                     case SystemRole.Client:
-                        await migration.RunOrderedMigrationAsync(MigrationStep.ClientMigrate, _dbProvider).ConfigureAwait(false);
+                        await migration.RunOrderedMigration(MigrationStep.ClientMigrate, _dbProvider).ConfigureAwait(false);
                         break;
                 }
 
@@ -144,34 +144,34 @@ namespace crossql.Migrations
                 databaseVersion.IsMigrationComplete = true;
                 await _dbProvider.Query<DatabaseVersionModel>()
                     .Where(dbv => dbv.VersionNumber == migration.MigrationVersion)
-                    .UpdateAsync(databaseVersion)
+                    .Update(databaseVersion)
                     .ConfigureAwait(false);
             }
 
         }
 
-        private async Task RunAfterMigrationAsync(IDbMigration migration, DatabaseVersionModel databaseVersion)
+        private async Task RunAfterMigration(IDbMigration migration, DatabaseVersionModel databaseVersion)
         {
             // Check Actual DatabaseVersion against the migration version
             // Don't run unless the MigrationVersion is 1 more than DatabaseVersion
             if (databaseVersion.IsAfterMigrationComplete == false)
             {
-                await migration.RunOrderedMigrationAsync(MigrationStep.Finish, _dbProvider).ConfigureAwait(false);
+                await migration.RunOrderedMigration(MigrationStep.Finish, _dbProvider).ConfigureAwait(false);
 
                 if (_systemRole == SystemRole.Server)
                 {
-                    await migration.RunOrderedMigrationAsync(MigrationStep.ServerFinish, _dbProvider).ConfigureAwait(false);
+                    await migration.RunOrderedMigration(MigrationStep.ServerFinish, _dbProvider).ConfigureAwait(false);
                 }
                 if (_systemRole == SystemRole.Client)
                 {
-                    await migration.RunOrderedMigrationAsync(MigrationStep.ClientFinish, _dbProvider).ConfigureAwait(false);
+                    await migration.RunOrderedMigration(MigrationStep.ClientFinish, _dbProvider).ConfigureAwait(false);
                 }
 
                 // Update the database version to show the after migration has been run
                 databaseVersion.IsAfterMigrationComplete = true;
                 await _dbProvider.Query<DatabaseVersionModel>()
                     .Where(dbv => dbv.VersionNumber == migration.MigrationVersion)
-                    .UpdateAsync(databaseVersion)
+                    .Update(databaseVersion)
                     .ConfigureAwait(false);
             }
         }
@@ -181,7 +181,7 @@ namespace crossql.Migrations
             var databaseVersions = await _dbProvider.Query<DatabaseVersionModel>()
                 .Where(dbv => dbv.VersionNumber == migration.MigrationVersion)
                 .OrderBy(v => v.VersionNumber, OrderDirection.Descending)
-                .SelectAsync()
+                .Select()
                 .ConfigureAwait(false);
             var databaseVersion = databaseVersions.FirstOrDefault();
 

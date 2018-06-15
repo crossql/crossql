@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using crossql.Config;
 using crossql.Migrations;
+using crossql.sqlite;
 using crossql.tests.Helpers.Migrations;
 using crossql.tests.Helpers.Models;
 using NUnit.Framework;
@@ -24,7 +25,7 @@ namespace crossql.tests.Integration
 
         public static IEnumerable<IDbProvider> SqliteOnly()
         {
-            var litecp = new sqlite.DbConnectionProvider($"{_testDbName}.sqlite3");
+            var litecp = new sqlite.DbConnectionProvider($"{_testDbName}.sqlite3",SqliteSettings.Default);
             yield return new SqliteDbProvider(litecp);
         }
 

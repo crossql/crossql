@@ -15,10 +15,23 @@ namespace crossql.tests.Unit
         public void SetUp() => _rootPath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
 
         [Test]
+        public void ShouldConstructSqliteConnectionAndDisallowBrowsingTheDatabasePath()
+        {
+            // setup
+            const string dbName = "foo.sqlite3";
+
+            // execute
+            var provider = new DbConnectionProvider(dbName, new SqliteSettings{BrowsableConnectionString = false});
+
+            // assert
+            provider.DatabasePath.Should().BeNullOrEmpty();
+        }
+
+        [Test]
         public void ShouldConstructSqliteConnectionWithAlternatePath()
         {
             // setup
-            const string dbName = "foo";
+            const string dbName = "foo.sqlite3";
             var expectedDatabasePath = $"{_rootPath}\\Documents\\{dbName}";
 
             // execute

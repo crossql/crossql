@@ -5,7 +5,7 @@ namespace crossql.Extensions
 {
     internal static class MigrationRunnerExtensions
     {
-        public static async Task RunOrderedMigrationAsync(this IDbMigration migration, MigrationStep key, IDbProvider dbProvider)
+        public static async Task RunOrderedMigration(this IDbMigration migration, MigrationStep key, IDbProvider dbProvider)
         {
             if (!migration.Migration.ContainsKey(key))
                 return;
