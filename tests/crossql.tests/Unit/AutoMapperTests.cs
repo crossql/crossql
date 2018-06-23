@@ -98,7 +98,7 @@ namespace crossql.tests.Unit
             var books = new List<BookModel>
             {
                 new BookModel {Name = "bob", Id = new Guid("645301E1-EC02-47BC-A99C-330A77FC6A4E")},
-                new BookModel {Name = "Joe", Id = new Guid("02CEF568-4130-457C-A34C-268585AFB939")},
+                new BookModel {Name = "Joe", Id = new Guid("02CEF568-4130-457C-A34C-268585AFB939")}
             };
             var autoMapper = new AutoModelMapper<PublisherModel, BookModel>();
 
