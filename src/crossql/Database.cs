@@ -39,9 +39,9 @@ namespace crossql
             var ddl = string.Join("", Tables);
 
             if (Indices.Count > 0)
-                ddl += Environment.NewLine + string.Join(" ", Indices);
+                ddl += $"{Environment.NewLine}{string.Join(" ", Indices)}";
 
-            return ddl;
+            return ddl.Trim();
         }
 
         public Table UpdateTable(string tableName)

@@ -32,7 +32,7 @@ namespace crossql.tests.Unit
         {
             // setup
             const string dbName = "foo.sqlite3";
-            var expectedDatabasePath = $"{_rootPath}\\Documents\\{dbName}";
+            var expectedDatabasePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Personal), dbName);
 
             // execute
             var provider = new DbConnectionProvider(dbName, fileName => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Personal), fileName));
@@ -46,7 +46,7 @@ namespace crossql.tests.Unit
         {
             // setup
             const string dbName = "foo";
-            var expectedDatabasePath = $"{_rootPath}\\AppData\\Roaming\\{dbName}";
+            var expectedDatabasePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), dbName);
 
             // execute
             var provider = new DbConnectionProvider(dbName);
