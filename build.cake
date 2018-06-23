@@ -31,7 +31,9 @@ Task("Build Sqlite").Does(() => {
         settings.SetConfiguration(configuration));
 });
 
-Task("Build Tests").Does(() => {
+Task("Build Tests")
+    .IsDependentOn("XDT Transform")
+    .Does(() => {
     MSBuild("./tests/crossql.tests/crossql.tests.csproj", settings =>
         settings.SetConfiguration(configuration));
 });
@@ -59,7 +61,6 @@ Task("Run-Unit-Tests")
     .IsDependentOn("Build Sql Server")
     .IsDependentOn("Build Sqlite")
     .IsDependentOn("Build Tests")
-    .IsDependentOn("XDT Transform")
     .Does(() =>
 {
     var resultsFile = artifactsDir + "/test-results.xml";
