@@ -1,0 +1,315 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Cake.XdtTransform</name>
+    </assembly>
+    <members>
+        <member name="T:Cake.XdtTransform.XdtTransformation">
+            <summary>
+            The XDT Transformatin class.
+            </summary>
+        </member>
+        <member name="M:Cake.XdtTransform.XdtTransformation.TransformConfig(Cake.Core.IO.FilePath,Cake.Core.IO.FilePath,Cake.Core.IO.FilePath)">
+            <summary>
+            Transforms config file.
+            </summary>
+            <param name="sourceFile">Source config file.</param>
+            <param name="transformFile">Tranformation to apply.</param>
+            <param name="targetFile">Target config file.</param>
+        </member>
+        <member name="M:Cake.XdtTransform.XdtTransformation.TransformConfigWithDefaultLogger(Cake.Core.IO.IFileSystem,Cake.Core.IO.FilePath,Cake.Core.IO.FilePath,Cake.Core.IO.FilePath)">
+            <summary>
+            Transforms config file and returns transformation log.
+            </summary>
+            <param name="fileSystem">The filesystem.</param>
+            <param name="sourceFile">Source config file.</param>
+            <param name="transformFile">Tranformation to apply.</param>
+            <param name="targetFile">Target config file.</param>
+        </member>
+        <member name="M:Cake.XdtTransform.XdtTransformation.TransformConfig(Cake.Core.IO.IFileSystem,Cake.Core.IO.FilePath,Cake.Core.IO.FilePath,Cake.Core.IO.FilePath,Microsoft.Web.XmlTransform.IXmlTransformationLogger)">
+            <summary>
+            Transforms config file.
+            </summary>
+            <param name="fileSystem">The filesystem.</param>
+            <param name="sourceFile">Source config file.</param>
+            <param name="transformFile">Tranformation to apply.</param>
+            <param name="targetFile">Target config file.</param>
+            <param name="logger">Logger for the transfomration process</param>
+        </member>
+        <member name="T:Cake.XdtTransform.XdtTransformationAlias">
+            <summary>
+            Contains functionality for working with XDT transformations.
+            </summary>
+        </member>
+        <member name="M:Cake.XdtTransform.XdtTransformationAlias.XdtTransformConfig(Cake.Core.ICakeContext,Cake.Core.IO.FilePath,Cake.Core.IO.FilePath,Cake.Core.IO.FilePath)">
+             <summary>
+             Transforms configuration files using XDT Transform library.
+             </summary>
+             <example>
+             <code>
+             var target = Argument("target", "Default");
+            
+             Task("TransformConfig")
+               .Does(() => {
+                 var sourceFile = File("web.config");
+                 var transformFile = File("web.release.config");
+                 var targetFile = File("web.target.config");
+                 XdtTransformConfig(sourceFile, transformFile, targetFile);
+             });
+            
+             RunTarget(target);
+             </code>
+             </example>
+             <param name="context">The context.</param>
+             <param name="sourceFile">Source file to be transformed.</param>
+             <param name="transformFile">Transformation file.</param>
+             <param name="targetFile">Output file name for the transformed file.</param>
+        </member>
+        <member name="M:Cake.XdtTransform.XdtTransformationAlias.XdtTransformConfigWithLogger(Cake.Core.ICakeContext,Cake.Core.IO.FilePath,Cake.Core.IO.FilePath,Cake.Core.IO.FilePath,Microsoft.Web.XmlTransform.IXmlTransformationLogger)">
+             <summary>
+             Transforms configuration files using XDT Transform library, allows you to pass a custom logger
+             </summary>
+             <example>
+             <code>
+             var target = Argument("target", "Default");
+            
+             Task("TransformConfig")
+               .Does(() => {
+             
+                 Microsoft.Web.XmlTransform.IXmlTransformationLogger logger = GetLogger();
+             
+                 var sourceFile = File("web.config");
+                 var transformFile = File("web.release.config");
+                 var targetFile = File("web.target.config");
+                 XdtTransformConfigWithLogger(sourceFile, transformFile, targetFile, logger);
+                 
+                 AnalyzeLog(logger);
+             });
+            
+             RunTarget(target);
+             </code>
+             </example>
+             <param name="context">The context.</param>
+             <param name="sourceFile">Source file to be transformed.</param>
+             <param name="transformFile">Transformation file.</param>
+             <param name="targetFile">Output file name for the transformed file.</param>
+             <param name="logger">Logger for the transformation process</param>
+        </member>
+        <member name="M:Cake.XdtTransform.XdtTransformationAlias.XdtTransformConfigWithDefaultLogger(Cake.Core.ICakeContext,Cake.Core.IO.FilePath,Cake.Core.IO.FilePath,Cake.Core.IO.FilePath)">
+             <summary>
+             Transforms configuration files using XDT Transform library and returns transformation log
+             </summary>
+             <example>
+             <code>
+             var target = Argument("target", "Default");
+            
+             Task("TransformConfig")
+               .Does(() => {
+             
+                 var sourceFile = File("web.config");
+                 var transformFile = File("web.release.config");
+                 var targetFile = File("web.target.config");
+                 var log = XdtTransformConfigWithDefaultLogger(sourceFile, transformFile, targetFile, logger);
+                 
+                 if(log.HasWarning)
+                 {
+                     var warnings = log.Log
+                                       .Where(entry => entry.MessageType == XdtTransformationLog.Warning)
+                                       .Select(entry => entry.ToString());
+                                       
+                     var concatWarnings = string.Join("\r\n", warnings);
+                     
+                     throw new Exception("Transformation has warnings:\r\n" + concatWarnings);
+                 }
+             });
+            
+             RunTarget(target);
+             </code>
+             </example>
+             <param name="context">The context.</param>
+             <param name="sourceFile">Source file to be transformed.</param>
+             <param name="transformFile">Transformation file.</param>
+             <param name="targetFile">Output file name for the transformed file.</param>
+        </member>
+        <member name="T:Cake.XdtTransform.XdtTransformationLog">
+            <summary>
+            Implementation of IXmlTransformationLogger that simply saves all entries.
+            </summary>
+        </member>
+        <member name="F:Cake.XdtTransform.XdtTransformationLog.Error">
+            <summary>
+            String marker for entries containing errors.
+            </summary>
+        </member>
+        <member name="F:Cake.XdtTransform.XdtTransformationLog.Exception">
+            <summary>
+            String marker for entries containing exceptions.
+            </summary>
+        </member>
+        <member name="F:Cake.XdtTransform.XdtTransformationLog.Warning">
+            <summary>
+            String marker for entries containing warnings.
+            </summary>
+        </member>
+        <member name="F:Cake.XdtTransform.XdtTransformationLog.Message">
+            <summary>
+            String marker for entries containing messages.
+            </summary>
+        </member>
+        <member name="F:Cake.XdtTransform.XdtTransformationLog.Section">
+            <summary>
+            String marker for entries entries containing section start'end information.
+            </summary>
+        </member>
+        <member name="P:Cake.XdtTransform.XdtTransformationLog.Log">
+            <summary>
+            Log entries.
+            </summary>
+        </member>
+        <member name="P:Cake.XdtTransform.XdtTransformationLog.HasError">
+            <summary>
+            True if at least one entry was for an error.
+            </summary>
+        </member>
+        <member name="P:Cake.XdtTransform.XdtTransformationLog.HasException">
+            <summary>
+            True if at least one entry was for an exception.
+            </summary>
+        </member>
+        <member name="P:Cake.XdtTransform.XdtTransformationLog.HasWarning">
+            <summary>
+            True if at least one entry was for a warning.
+            </summary>
+        </member>
+        <member name="M:Cake.XdtTransform.XdtTransformationLog.EndSection(System.String,System.Object[])">
+            <summary>
+            Logging interface implementation.
+            </summary>
+        </member>
+        <member name="M:Cake.XdtTransform.XdtTransformationLog.EndSection(Microsoft.Web.XmlTransform.MessageType,System.String,System.Object[])">
+            <summary>
+            Logging interface implementation.
+            </summary>
+        </member>
+        <member name="M:Cake.XdtTransform.XdtTransformationLog.LogError(System.String,System.Object[])">
+            <summary>
+            Logging interface implementation.
+            </summary>
+        </member>
+        <member name="M:Cake.XdtTransform.XdtTransformationLog.LogError(System.String,System.String,System.Object[])">
+            <summary>
+            Logging interface implementation.
+            </summary>
+        </member>
+        <member name="M:Cake.XdtTransform.XdtTransformationLog.LogError(System.String,System.Int32,System.Int32,System.String,System.Object[])">
+            <summary>
+            Logging interface implementation.
+            </summary>
+        </member>
+        <member name="M:Cake.XdtTransform.XdtTransformationLog.LogErrorFromException(System.Exception)">
+            <summary>
+            Logging interface implementation.
+            </summary>
+        </member>
+        <member name="M:Cake.XdtTransform.XdtTransformationLog.LogErrorFromException(System.Exception,System.String)">
+            <summary>
+            Logging interface implementation.
+            </summary>
+        </member>
+        <member name="M:Cake.XdtTransform.XdtTransformationLog.LogErrorFromException(System.Exception,System.String,System.Int32,System.Int32)">
+            <summary>
+            Logging interface implementation.
+            </summary>
+        </member>
+        <member name="M:Cake.XdtTransform.XdtTransformationLog.LogMessage(System.String,System.Object[])">
+            <summary>
+            Logging interface implementation.
+            </summary>
+        </member>
+        <member name="M:Cake.XdtTransform.XdtTransformationLog.LogMessage(Microsoft.Web.XmlTransform.MessageType,System.String,System.Object[])">
+            <summary>
+            Logging interface implementation.
+            </summary>
+        </member>
+        <member name="M:Cake.XdtTransform.XdtTransformationLog.LogWarning(System.String,System.Object[])">
+            <summary>
+            Logging interface implementation.
+            </summary>
+        </member>
+        <member name="M:Cake.XdtTransform.XdtTransformationLog.LogWarning(System.String,System.String,System.Object[])">
+            <summary>
+            Logging interface implementation.
+            </summary>
+        </member>
+        <member name="M:Cake.XdtTransform.XdtTransformationLog.LogWarning(System.String,System.Int32,System.Int32,System.String,System.Object[])">
+            <summary>
+            Logging interface implementation.
+            </summary>
+        </member>
+        <member name="M:Cake.XdtTransform.XdtTransformationLog.StartSection(System.String,System.Object[])">
+            <summary>
+            Logging interface implementation.
+            </summary>
+        </member>
+        <member name="M:Cake.XdtTransform.XdtTransformationLog.StartSection(Microsoft.Web.XmlTransform.MessageType,System.String,System.Object[])">
+            <summary>
+            Logging interface implementation.
+            </summary>
+        </member>
+        <member name="T:Cake.XdtTransform.XdtTransformationLogEntry">
+            <summary>
+            Entry from <see cref="T:Cake.XdtTransform.XdtTransformationLogEntry"/>  
+            </summary>
+        </member>
+        <member name="P:Cake.XdtTransform.XdtTransformationLogEntry.Timestamp">
+            <summary>
+            Time of entry 
+            </summary>
+        </member>
+        <member name="P:Cake.XdtTransform.XdtTransformationLogEntry.MessageVerbosityType">
+            <summary>
+             <see cref="T:Microsoft.Web.XmlTransform.MessageType"/> if supplied, depicts verbosity
+            </summary>
+        </member>
+        <member name="P:Cake.XdtTransform.XdtTransformationLogEntry.MessageType">
+            <summary>
+            MessageType, if supplied, i.e. "Message","Warning","Error" etc.
+            </summary>
+        </member>
+        <member name="P:Cake.XdtTransform.XdtTransformationLogEntry.File">
+            <summary>
+            File, if supplied
+            </summary>
+        </member>
+        <member name="P:Cake.XdtTransform.XdtTransformationLogEntry.LineNumber">
+            <summary>
+            LineNumber, if supplied
+            </summary>
+        </member>
+        <member name="P:Cake.XdtTransform.XdtTransformationLogEntry.LinePosition">
+            <summary>
+            LinePosition, if supplied
+            </summary>
+        </member>
+        <member name="P:Cake.XdtTransform.XdtTransformationLogEntry.Exception">
+            <summary>
+            Exception, if supplied
+            </summary>
+        </member>
+        <member name="P:Cake.XdtTransform.XdtTransformationLogEntry.Message">
+            <summary>
+            Message before format
+            </summary>
+        </member>
+        <member name="P:Cake.XdtTransform.XdtTransformationLogEntry.MessageArgs">
+            <summary>
+            Message arguments for format
+            </summary>
+        </member>
+        <member name="M:Cake.XdtTransform.XdtTransformationLogEntry.ToString">
+            <summary>
+            Outputs all available information as a string
+            </summary>
+        </member>
+    </members>
+</doc>
