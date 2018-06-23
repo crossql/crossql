@@ -3,10 +3,9 @@
 
 var target = Argument("target", "Default");
 var configuration = Argument("configuration", "Release");
-var local = BuildSystem.IsLocalBuild;
 var environment = Argument<string>("environment", "local");
 var artifactsDir = "./artifacts";
-var notLocal = Argument("environment", !environment.Equals("local"));
+var notLocal = !environment.Equals("local");
 
 Setup(context =>
 {
