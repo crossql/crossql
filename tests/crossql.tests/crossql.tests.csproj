@@ -21,7 +21,11 @@
   </ItemGroup>
   <ItemGroup>
     <None Update="App.*.config">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <DependentUpon>App.config</DependentUpon>
+    </None>
+    <None Update="App.config">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
 </Project>
