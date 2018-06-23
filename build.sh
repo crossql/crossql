@@ -36,8 +36,6 @@ for i in "$@"; do
         -s|--script) SCRIPT="$2"; shift ;;
         --) shift; CAKE_ARGUMENTS+=("$@"); break ;;
         --environment) ENVIRONMENT="$2"; shift ;; # Added parameter
-        --buildVersion) BUILDVERSION="$2"; shift ;; # Added parameter
-        --buildNumber) BUILDNUMBER="$2"; shift ;; # Added parameter
         *) CAKE_ARGUMENTS+=("$1") ;;
     esac
     shift

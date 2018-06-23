@@ -5,12 +5,8 @@ var target = Argument("target", "Default");
 var configuration = Argument("configuration", "Release");
 var local = BuildSystem.IsLocalBuild;
 var environment = Argument<string>("environment", "local");
-var versionParam = Argument<string>("buildVersion", "0.1.1");
-var buildNumber = Argument<string>("buildNumber", "0");
-var versionParts = versionParam.Split('.');
 var artifactsDir = "./artifacts";
-
-var version = string.Format("{0}.{1}.{2}.{3}", versionParts[0],versionParts[1],versionParts[2], buildNumber);
+var notLocal = Argument("environment", !environment.Equals("local"));
 
 Setup(context =>
 {
@@ -21,8 +17,6 @@ Setup(context =>
 	CleanDirectories(binsToClean);
 	CleanDirectories(testsToClean);
     CreateDirectory(artifactsDir);
-    //Executed BEFORE the first task.
-    Information("Building version {0}", version);
 });
 
 Task("Default").IsDependentOn("Run-Unit-Tests");
@@ -42,22 +36,24 @@ Task("Build Tests").Does(() => {
         settings.SetConfiguration(configuration));
 });
 
-Task("XDT Transform").Does(() => {
-    var directories = GetDirectories("./tests/**");
-    foreach(var dir in directories)
-    {
-        var xslPath = dir + "/app." + environment + ".config";
-        var xmlPath = dir + "/app.config";
-        
-        if(FileExists(xslPath))
+Task("XDT Transform")
+    .WithCriteria(notLocal)
+    .Does(() => {
+        var directories = GetDirectories("./tests/**");
+        foreach(var dir in directories)
         {
-            var xsl = File(xslPath);
-            var xml = File(xmlPath);
-            Information("Transforming {0} into {1}", xsl, xml);
-            XdtTransformConfig(xml,xsl, xml);
-        } 
-    }
-});
+            var xslPath = dir + "/app." + environment + ".config";
+            var xmlPath = dir + "/app.config";
+            
+            if(FileExists(xslPath))
+            {
+                var xsl = File(xslPath);
+                var xml = File(xmlPath);
+                Information("Transforming {0} into {1}", xsl, xml);
+                XdtTransformConfig(xml,xsl, xml);
+            } 
+        }
+    });
 
 Task("Run-Unit-Tests")
     .IsDependentOn("Build Sql Server")
