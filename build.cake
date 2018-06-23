@@ -1,10 +1,11 @@
 #tool nuget:?package=NUnit.ConsoleRunner&version=3.4.0
+#addin Cake.XdtTransform
 
 var target = Argument("target", "Default");
 var configuration = Argument("configuration", "Release");
 var local = BuildSystem.IsLocalBuild;
-var environment = Argument<string>("environment");
-var versionParam = Argument<string>("buildVersion");
+var environment = Argument<string>("environment", "local");
+var versionParam = Argument<string>("buildVersion", "0.1.1");
 var buildNumber = Argument<string>("buildNumber", "0");
 var versionParts = versionParam.Split('.');
 var artifactsDir = "./artifacts";
@@ -41,10 +42,28 @@ Task("Build Tests").Does(() => {
         settings.SetConfiguration(configuration));
 });
 
+Task("XDT Transform").Does(() => {
+    var directories = GetDirectories("./tests/**");
+    foreach(var dir in directories)
+    {
+        var xslPath = dir + "/app." + environment + ".config";
+        var xmlPath = dir + "/app.config";
+        
+        if(FileExists(xslPath))
+        {
+            var xsl = File(xslPath);
+            var xml = File(xmlPath);
+            Information("Transforming {0} into {1}", xsl, xml);
+            XdtTransformConfig(xml,xsl, xml);
+        } 
+    }
+});
+
 Task("Run-Unit-Tests")
     .IsDependentOn("Build Sql Server")
     .IsDependentOn("Build Sqlite")
     .IsDependentOn("Build Tests")
+    .IsDependentOn("XDT Transform")
     .Does(() =>
 {
     var resultsFile = artifactsDir + "/test-results.xml";
