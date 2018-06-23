@@ -37,10 +37,10 @@ namespace crossql.tests.Unit
         {
             // Setup
             string expectedDDL = "ALTER TABLE [Test] ADD " + _nl +
-"[Name] nvarchar(100) NULL;" + _nl +
-"ALTER TABLE [Test] ADD " + _nl +
-"[Foo] int DEFAULT(1);" + _nl +
-"CREATE INDEX [IX_Test_Name_Foo] ON [Test] (Name,Foo);";
+                                 "[Name] nvarchar(100) NULL;" + _nl +
+                                 "ALTER TABLE [Test] ADD " + _nl +
+                                 "[Foo] int DEFAULT(1);" + _nl +
+                                 "CREATE INDEX [IX_Test_Name_Foo] ON [Test] (Name,Foo);";
 
             var dialect = new SqlServerDialect();
             var database = new Database( "MyDatabase", dialect );
@@ -62,14 +62,14 @@ namespace crossql.tests.Unit
         {
             // Setup
             string expectedDDL = "CREATE TABLE [Teachers] (" + _nl +
-"[Id] uniqueidentifier PRIMARY KEY NONCLUSTERED NOT NULL," + _nl +
-"[TeacherName] nvarchar(100) NOT NULL);" + _nl +
-"CREATE TABLE [Courses] (" + _nl +
-"[Id] uniqueidentifier PRIMARY KEY NONCLUSTERED NOT NULL," + _nl +
-"[CourseName] nvarchar(100) NOT NULL," + _nl +
-"[CourseDescription] nvarchar(max) ," + _nl +
-"[CourseTeacher] uniqueidentifier CONSTRAINT FK_Courses_CourseTeacher FOREIGN KEY (CourseTeacher) REFERENCES Teachers (Id) ON DELETE NO ACTION ON UPDATE NO ACTION NOT NULL," + _nl +
-"[IsAvailable] bit NOT NULL DEFAULT(0));";
+                                 "[Id] uniqueidentifier PRIMARY KEY NONCLUSTERED NOT NULL," + _nl +
+                                 "[TeacherName] nvarchar(100) NOT NULL);" + _nl +
+                                 "CREATE TABLE [Courses] (" + _nl +
+                                 "[Id] uniqueidentifier PRIMARY KEY NONCLUSTERED NOT NULL," + _nl +
+                                 "[CourseName] nvarchar(100) NOT NULL," + _nl +
+                                 "[CourseDescription] nvarchar(max) ," + _nl +
+                                 "[CourseTeacher] uniqueidentifier CONSTRAINT FK_Courses_CourseTeacher FOREIGN KEY (CourseTeacher) REFERENCES Teachers (Id) ON DELETE NO ACTION ON UPDATE NO ACTION NOT NULL," + _nl +
+                                 "[IsAvailable] bit NOT NULL DEFAULT(0));";
 
             var dialect = new SqlServerDialect();
             var database = new Database("MyDatabase", dialect);
@@ -97,14 +97,14 @@ namespace crossql.tests.Unit
         {
             // Setup
             string expectedDDL = "CREATE TABLE [Teachers] (" + _nl +
-"[Id] blob PRIMARY KEY NOT NULL," + _nl +
-"[TeacherName] text NOT NULL);" + _nl +
-"CREATE TABLE [Courses] (" + _nl +
-"[Id] blob PRIMARY KEY NOT NULL," + _nl +
-"[CourseName] text NOT NULL," + _nl +
-"[CourseDescription] text ," + _nl +
-"[CourseTeacher] blob REFERENCES Teachers (Id) ON DELETE NO ACTION ON UPDATE NO ACTION NOT NULL," + _nl +
-"[IsAvailable] integer NOT NULL DEFAULT(0));";
+                                 "[Id] blob PRIMARY KEY NOT NULL," + _nl +
+                                 "[TeacherName] text NOT NULL);" + _nl +
+                                 "CREATE TABLE [Courses] (" + _nl +
+                                 "[Id] blob PRIMARY KEY NOT NULL," + _nl +
+                                 "[CourseName] text NOT NULL," + _nl +
+                                 "[CourseDescription] text ," + _nl +
+                                 "[CourseTeacher] blob REFERENCES Teachers (Id) ON DELETE NO ACTION ON UPDATE NO ACTION NOT NULL," + _nl +
+                                 "[IsAvailable] integer NOT NULL DEFAULT(0));";
 
             var dialect = new SqliteDialect();
             var database = new Database("MyDatabase", dialect);
@@ -132,9 +132,9 @@ namespace crossql.tests.Unit
         {
             // Setup
             string expectedDDL = "CREATE TABLE [Roles_Permissions] (" + _nl +
-"[RoleId] uniqueidentifier CONSTRAINT FK_Roles_Permissions_RoleId FOREIGN KEY (RoleId) REFERENCES Courses (Id) ON DELETE NO ACTION ON UPDATE NO ACTION," + _nl +
-"[PermissionId] uniqueidentifier CONSTRAINT FK_Roles_Permissions_PermissionId FOREIGN KEY (PermissionId) REFERENCES Permissions (Id) ON DELETE NO ACTION ON UPDATE NO ACTION," + _nl +
-"CONSTRAINT PK_Roles_Permissions_Composite PRIMARY KEY NONCLUSTERED (RoleId, PermissionId));";
+                                 "[RoleId] uniqueidentifier CONSTRAINT FK_Roles_Permissions_RoleId FOREIGN KEY (RoleId) REFERENCES Courses (Id) ON DELETE NO ACTION ON UPDATE NO ACTION," + _nl +
+                                 "[PermissionId] uniqueidentifier CONSTRAINT FK_Roles_Permissions_PermissionId FOREIGN KEY (PermissionId) REFERENCES Permissions (Id) ON DELETE NO ACTION ON UPDATE NO ACTION," + _nl +
+                                 "CONSTRAINT PK_Roles_Permissions_Composite PRIMARY KEY NONCLUSTERED (RoleId, PermissionId));";
 
             var dialect = new SqlServerDialect();
             var database = new Database("MyDatabase", dialect);
@@ -155,9 +155,9 @@ namespace crossql.tests.Unit
         {
             // setup
             string expectedDDL = "CREATE TABLE [Roles_Permissions] (" + _nl +
-"[RoleId] uniqueidentifier CONSTRAINT FK_Roles_Permissions_RoleId FOREIGN KEY (RoleId) REFERENCES Courses (Id) ON DELETE NO ACTION ON UPDATE NO ACTION," + _nl +
-"[PermissionId] uniqueidentifier CONSTRAINT FK_Roles_Permissions_PermissionId FOREIGN KEY (PermissionId) REFERENCES Permissions (Id) ON DELETE NO ACTION ON UPDATE NO ACTION," + _nl +
-"CONSTRAINT PK_RoleId_PermissionId_Composite UNIQUE NONCLUSTERED (RoleId, PermissionId));";
+                                 "[RoleId] uniqueidentifier CONSTRAINT FK_Roles_Permissions_RoleId FOREIGN KEY (RoleId) REFERENCES Courses (Id) ON DELETE NO ACTION ON UPDATE NO ACTION," + _nl +
+                                 "[PermissionId] uniqueidentifier CONSTRAINT FK_Roles_Permissions_PermissionId FOREIGN KEY (PermissionId) REFERENCES Permissions (Id) ON DELETE NO ACTION ON UPDATE NO ACTION," + _nl +
+                                 "CONSTRAINT PK_RoleId_PermissionId_Composite UNIQUE NONCLUSTERED (RoleId, PermissionId));";
 
 
             var dialect = new SqlServerDialect();
@@ -179,8 +179,8 @@ namespace crossql.tests.Unit
         {
             // Setup
             string expectedDDL = "CREATE TABLE [Test] (" + _nl +
-"[Id] int NOT NULL," + _nl +
-"[Foo] nvarchar(max) );";
+                                 "[Id] int NOT NULL," + _nl +
+                                 "[Foo] nvarchar(max) );";
 
             var dialect = new SqlServerDialect();
             var database = new Database("MyDatabase", dialect);
@@ -201,7 +201,7 @@ namespace crossql.tests.Unit
         {
             // Setup
             string expectedDDL = "CREATE TABLE [Test] (" + _nl +
-"[Latitude] double(9, 6) );";
+                                 "[Latitude] double(9, 6) );";
 
             var dialect = new SqlServerDialect();
             var customDialect = new CustomDialect();
