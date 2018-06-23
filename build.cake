@@ -75,4 +75,4 @@ Task("Run-Unit-Tests")
     }
 });
 
-RunTarget(target);  
+RunTarget(target);
