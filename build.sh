@@ -28,7 +28,8 @@ fi
 
 # Define default arguments.
 SCRIPT="build.cake"
-CAKE_ARGUMENTS=()
+CAKE_ARGUMENTS=()git update-index --add --chmod=+x build.sh
+
 
 # Parse arguments.
 for i in "$@"; do
