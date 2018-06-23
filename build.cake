@@ -13,6 +13,7 @@ Setup(context =>
     var testsToClean = GetDirectories("./test/**/bin/");
     var artifactsToClean = GetDirectories(artifactsDir);
 
+    DotNetCoreRestore();
 	CleanDirectories(binsToClean);
 	CleanDirectories(testsToClean);
     CreateDirectory(artifactsDir);
