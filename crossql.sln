@@ -19,20 +19,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "files", "files", "{8E37ED08
 	ProjectSection(SolutionItems) = preProject
 		.gitattributes = .gitattributes
 		.gitignore = .gitignore
-		build.ps1 = build.ps1
 		README.md = README.md
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{F7B4DB3B-76A3-42FF-97DE-19D0C774A4C2}"
-	ProjectSection(SolutionItems) = preProject
-		build\Build.ps1 = build\Build.ps1
-		build\Deploy.ps1 = build\Deploy.ps1
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "environments", "environments", "{30DDF27B-5B99-48C4-8A41-8FEB56C2C0C1}"
-	ProjectSection(SolutionItems) = preProject
-		build\environments\ci.xml = build\environments\ci.xml
-		build\environments\local.xml = build\environments\local.xml
+		build.sh = build.sh
 	EndProjectSection
 EndProject
 Global
@@ -66,8 +54,6 @@ Global
 		{8B67CA72-AC66-42F1-B32F-C5AB1DB7A840} = {474BE14A-235D-48A1-A3AD-FD6FF5D8A4A9}
 		{099E4343-DF84-4D6F-862D-A28B7A2A7082} = {474BE14A-235D-48A1-A3AD-FD6FF5D8A4A9}
 		{267B23F4-E277-4A90-A4DD-2124F3394DB5} = {3FC6BDE5-5841-4061-812B-3BB58E825E85}
-		{F7B4DB3B-76A3-42FF-97DE-19D0C774A4C2} = {8E37ED08-4499-4D3C-8E2B-D552A66F685F}
-		{30DDF27B-5B99-48C4-8A41-8FEB56C2C0C1} = {F7B4DB3B-76A3-42FF-97DE-19D0C774A4C2}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {C1110309-72C9-4E34-A297-3F655DF9B12C}
