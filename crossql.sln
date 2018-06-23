@@ -21,6 +21,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "files", "files", "{8E37ED08
 		.gitignore = .gitignore
 		README.md = README.md
 		build.sh = build.sh
+		build.cake = build.cake
 	EndProjectSection
 EndProject
 Global

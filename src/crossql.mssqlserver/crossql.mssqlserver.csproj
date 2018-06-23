@@ -1,13 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <TargetFramework>net462</TargetFramework>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <WarningsAsErrors />
-  </PropertyGroup>
 
+  </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\crossql\crossql.csproj" />
   </ItemGroup>
-  
 </Project>
