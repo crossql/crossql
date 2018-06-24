@@ -80,4 +80,4 @@ To give you a taste of what it looks like, here are some examples of CRUD operat
 
 We absolutely welcome contributions/suggestions/bug reports from you (the people using this package). If you have any ideas on how to improve it, please post an [issue](https://github.com/crossql/crossql/issues) with steps to reproduce, or better yet, submit a Pull Request.  
 
-_*crossql* is forked from [futurestate.appcore.data](https://github.com/futurestatemobile/appcore.data). Commit history is in tact._
+<sub><sup>_*crossql* is forked from [futurestate.appcore.data](https://github.com/futurestatemobile/appcore.data). Commit history is in tact._</sup></sub>
