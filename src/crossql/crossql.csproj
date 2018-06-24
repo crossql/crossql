@@ -15,5 +15,8 @@
     <Version>0.1.1.1</Version>
     <PackageVersion>0.1.1.1</PackageVersion>
     
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <WarningsAsErrors />
   </PropertyGroup>
 </Project>
