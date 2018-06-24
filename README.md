@@ -15,6 +15,7 @@ A Portable, cross-platform, light weight, opinionated ORM designed to work acros
 
 | Provider | Package Name | Stable | Pre-Release |
 | :------- | :----------- | -----: | ----------: |
+|          | crossql.core |      | [![MyGet](https://img.shields.io/myget/crossql/vpre/crossql.core.svg?style=flat-square&label=myget)](https://www.myget.org/feed/crossql/package/nuget/crossql.core)
 | SQLite   | crossql.sqlite |      | [![MyGet](https://img.shields.io/myget/crossql/vpre/crossql.sqlite.svg?style=flat-square&label=myget)](https://www.myget.org/feed/crossql/package/nuget/crossql.sqlite)
 | MS Sql Server   | crossql.mssqlserver |      | [![MyGet](https://img.shields.io/myget/crossql/vpre/crossql.mssqlserver.svg?style=flat-square&label=myget)](https://www.myget.org/feed/crossql/package/nuget/crossql.mssqlserver)
 
