@@ -24,6 +24,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "files", "files", "{8E37ED08
 		build.cake = build.cake
 		build.ps1 = build.ps1
 		appveyor.yml = appveyor.yml
+		src\Directory.Build.props = src\Directory.Build.props
 	EndProjectSection
 EndProject
 Global

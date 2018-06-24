@@ -1,7 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net462</TargetFramework>
-
+    <TargetFrameworks>net462</TargetFrameworks>
+    <Product>$(AssemblyName) ($(TargetFramework))</Product>
+    <DefineConstants>$(DefineConstants);</DefineConstants>
+    
+    <PackageId>crossql.mssqlserver</PackageId>
+    <PackageTags>xamarin, windows, ios, android, netstandard, sql-server</PackageTags>
+    <Title>crossql - A Cross Plataform ORM for MS SQL Server</Title>
+    
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\crossql\crossql.csproj" />
