@@ -46,35 +46,42 @@ To give you a taste of what it looks like, here are some examples of CRUD operat
 
 **Create**
 
-    var jill = new StudentModel
-        {
-            Id = StudentJillId,
-            FirstName = "Jill",
-            LastName = "",
-            Email = JillEmail,
-            Courses = new List<CourseModel> { englishCourse },
-        };
+```csharp
+var jill = new StudentModel
+    {
+        Id = StudentJillId,
+        FirstName = "Jill",
+        LastName = "",
+        Email = JillEmail,
+        Courses = new List<CourseModel> { englishCourse },
+    };
 
-    await _dbProvider.Create( jill );
+await _dbProvider.Create( jill );
+```
 
 **Read**
 
-    IList<StudentModel> allStudents = await _dbProvider.Query<StudentModel>().ToListAsync();
-    StudentModel jill = await _dbProvider.Query<StudentModel>().Where(s => s.Email == "JillEmail").FirstOrDefaultAsync();
-
+```csharp
+IList<StudentModel> allStudents = await _dbProvider.Query<StudentModel>().ToListAsync();
+StudentModel jill = await _dbProvider.Query<StudentModel>().Where(s => s.Email == "JillEmail").FirstOrDefaultAsync();
+```
 **Update**
 
-    jill.Email = "JillNewEmail";
-    await _dbProvider.Update<StudentModel>(jill);
+```csharp
+jill.Email = "JillNewEmail";
+await _dbProvider.Update<StudentModel>(jill);
+```
 
 **Delete**  
 *note: this is still a work in progress*
 
-    // first flavor
-    await _dbProvider.Query<StudentModel>().Where( s => s.Email == "JillNewEmail" ).Delete();
+```csharp
+// first flavor
+await _dbProvider.Query<StudentModel>().Where( s => s.Email == "JillNewEmail" ).Delete();
 
-    // second flavor
-    await _dbProvider.Delete<StudentModel>(s => s.Email == "JillNewEmail");
+// second flavor
+await _dbProvider.Delete<StudentModel>(s => s.Email == "JillNewEmail");
+```
 
 ### Meta ###
 
