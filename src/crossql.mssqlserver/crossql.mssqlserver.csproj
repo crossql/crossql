@@ -14,9 +14,11 @@
     <PackageVersion>0.1.1.1</PackageVersion>
     
     <TargetFramework>net462</TargetFramework>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <WarningsAsErrors />
+
+    <PackOnBuild>true</PackOnBuild>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
+    
   <ItemGroup>
     <ProjectReference Include="..\crossql\crossql.csproj" />
   </ItemGroup>
