@@ -2,9 +2,9 @@ version: 1.0.0.{build}
 image: Visual Studio 2017
 services: mssql2017
 build_script:
-    - ps: ./build -environment="ci"
+- ps: ./build -environment="ci"
 artifacts:
-    - path: '**/*.nupkg'
-    - type: NuGetPackage
+- path: '**/*.nupkg'
+- type: NuGetPackage
 after_build:
-    - ps: Get-ChildItem .\*.nupkg | % { Push-AppveyorArtifact $_.FullName -FileName $_.Name }
+- ps: Get-ChildItem .\*.nupkg | % { Push-AppveyorArtifact $_.FullName -FileName $_.Name }
