@@ -18,6 +18,5 @@
     <PackOnBuild>true</PackOnBuild>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <IncludeSymbols>true</IncludeSymbols>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>  
   </PropertyGroup>
 </Project>

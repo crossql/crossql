@@ -1,23 +1,23 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>net462</TargetFrameworks>
-    <Product>$(AssemblyName) ($(TargetFramework))</Product>
-    <DefineConstants>$(DefineConstants);</DefineConstants>
+      <TargetFrameworks>net462</TargetFrameworks>
+      <Product>$(AssemblyName) ($(TargetFramework))</Product>
+      <DefineConstants>$(DefineConstants);</DefineConstants>
+      <RootNamespace>crossql.mssqlserver</RootNamespace>
+      <GenerateDocumentationFile Condition=" '$(Configuration)' == 'Release' ">true</GenerateDocumentationFile>
     
-    <PackageId>crossql.mssqlserver</PackageId>
-    <PackageTags>xamarin, windows, ios, android, netstandard, sql-server</PackageTags>
-    <Title>crossql - A Cross Plataform ORM for MS SQL Server</Title>        
+      <PackageId>crossql.mssqlserver</PackageId>
+      <PackageTags>xamarin, windows, ios, android, netstandard, sql-server</PackageTags>
+      <Title>crossql - A Cross Plataform ORM for MS SQL Server</Title>        
     
-    <AssemblyVersion>0.1.1.1</AssemblyVersion>
-    <AssemblyFileVersion>0.1.1.1</AssemblyFileVersion>
-    <Version>0.1.1.1</Version>
-    <PackageVersion>0.1.1.1</PackageVersion>
-    
-    <TargetFramework>net462</TargetFramework>
-
-    <PackOnBuild>true</PackOnBuild>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <IncludeSymbols>true</IncludeSymbols>
+      <AssemblyVersion>0.1.1.1</AssemblyVersion>
+      <AssemblyFileVersion>0.1.1.1</AssemblyFileVersion>
+      <Version>0.1.1.1</Version>
+      <PackageVersion>0.1.1.1</PackageVersion>
+      
+      <PackOnBuild>true</PackOnBuild>
+      <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+      <IncludeSymbols>true</IncludeSymbols>
   </PropertyGroup>
     
   <ItemGroup>
