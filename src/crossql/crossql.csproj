@@ -10,5 +10,10 @@
     <PackageTags>xamarin, windows, ios, android, netstandard</PackageTags>
     <Title>crossql - A Cross Plataform ORM</Title>
     
+    <AssemblyVersion>0.1.1.1</AssemblyVersion>
+    <AssemblyFileVersion>0.1.1.1</AssemblyFileVersion>
+    <Version>0.1.1.1</Version>
+    <PackageVersion>0.1.1.1</PackageVersion>
+    
   </PropertyGroup>
 </Project>
