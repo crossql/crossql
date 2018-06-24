@@ -3,11 +3,6 @@
     <TargetFrameworks>net462</TargetFrameworks>
     <Product>$(AssemblyName) ($(TargetFramework))</Product>
     <DefineConstants>$(DefineConstants);</DefineConstants>
-
-    <AssemblyVersion>0.1.1.1</AssemblyVersion>
-    <AssemblyFileVersion>0.1.1.1</AssemblyFileVersion>
-    <Version>0.1.1.1</Version>
-    <PackageVersion>0.1.1.1</PackageVersion>
     
     <PackageId>crossql.mssqlserver</PackageId>
     <PackageTags>xamarin, windows, ios, android, netstandard, sql-server</PackageTags>
