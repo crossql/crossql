@@ -10,9 +10,6 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "crossql.sqlite", "src\crossql.sqlite\crossql.sqlite.csproj", "{099E4343-DF84-4D6F-862D-A28B7A2A7082}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{3FC6BDE5-5841-4061-812B-3BB58E825E85}"
-ProjectSection(SolutionItems) = preProject
-	tests\build.ps1 = tests\build.ps1
-EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "crossql.tests", "tests\crossql.tests\crossql.tests.csproj", "{267B23F4-E277-4A90-A4DD-2124F3394DB5}"
 EndProject
@@ -26,6 +23,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "files", "files", "{8E37ED08
 		build.sh = build.sh
 		build.cake = build.cake
 		build.ps1 = build.ps1
+		appveyor.yml = appveyor.yml
 	EndProjectSection
 EndProject
 Global
