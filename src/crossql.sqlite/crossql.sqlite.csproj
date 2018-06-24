@@ -16,7 +16,9 @@
     <PackageVersion>0.1.1.1</PackageVersion>
     
     <PackOnBuild>true</PackOnBuild>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>  </PropertyGroup>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>  
+    <IncludeSymbols>true</IncludeSymbols>
+  </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\crossql\crossql.csproj" />

@@ -17,6 +17,7 @@
 
     <PackOnBuild>true</PackOnBuild>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <IncludeSymbols>true</IncludeSymbols>
   </PropertyGroup>
     
   <ItemGroup>
