@@ -1,7 +1,7 @@
 version: 1.0.0.{build}
 dotnet_csproj:
-- patch: true
-- file: '**\*.csproj'
+  patch: true
+  file: '**\*.csproj'
 image: Visual Studio 2017
 services: mssql2017
 build_script:
