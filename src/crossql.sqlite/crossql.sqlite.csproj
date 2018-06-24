@@ -18,8 +18,8 @@
     <PackOnBuild>true</PackOnBuild>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>  
     <IncludeSymbols>true</IncludeSymbols>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>  
   </PropertyGroup>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>  </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\crossql\crossql.csproj" />
