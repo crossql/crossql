@@ -23,11 +23,11 @@ A Portable, cross-platform, light weight, opinionated ORM designed to work acros
 
 *note: we take pull requests if you'd like to support more ;)* 
 
-| Platform      | Sqlite | SQL Server (> 2012) | PostgreSQL  | MySQL   |
-| ------------- | -----: | ------------------: | ----------: | ------: |
-| Windows       | - [x]  | - [x]               |             |         |
-| Android       | - [x]  | - [ ]               |             |         |
-| iOS           | - [x]  | - [ ]               |             |         |
+| Platform      | Sqlite                  | SQL Server (> 2012)     | PostgreSQL               | MySQL                   |
+| ------------- | ----------------------: | ----------------------: | -----------------------: | ----------------------: |
+| Windows       | <ul><li>- [x]</li></ul> | <ul><li>- [x]</li></ul> | <ul><li>- [ ]</li></ul>  | <ul><li>- [ ]</li></ul> |
+| Android       | <ul><li>- [x]</li></ul> |                         |                          |                         |
+| iOS           | <ul><li>- [x]</li></ul> |                         |                          |                         |
 
 ### That sounds good, how do I use it? ###
 
