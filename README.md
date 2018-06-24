@@ -5,6 +5,12 @@ A Portable, cross-platform, light weight, opinionated ORM designed to work acros
 
 ----
 
+### Status ###
+
+| Release | Pre-Release |
+| ------- | :---------: |
+|         | [![Build status](https://ci.appveyor.com/api/projects/status/25stvaknw7vrpjhc?svg=true)](https://ci.appveyor.com/project/ChaseFlorell/crossql) |
+
 ### Current Support ###
 
 *note: we take pull requests if you'd like to support more ;)* 
