@@ -7,9 +7,9 @@ A Portable, cross-platform, light weight, opinionated ORM designed to work acros
 
 ### Build Status ###
 
-| Stable | Pre-Release |
-| ------- | :---------: |
-|         | [![Build status](https://ci.appveyor.com/api/projects/status/25stvaknw7vrpjhc?svg=true)](https://ci.appveyor.com/project/ChaseFlorell/crossql) |
+| Stable Build (master) | Pre-Release Build (vnext) |
+| --------------------: | ------------------------: |
+|     (coming soon)     | [![Build status](https://ci.appveyor.com/api/projects/status/25stvaknw7vrpjhc?svg=true)](https://ci.appveyor.com/project/ChaseFlorell/crossql) |
 
 ### Packages ###
 
@@ -23,7 +23,7 @@ A Portable, cross-platform, light weight, opinionated ORM designed to work acros
 
 *note: we take pull requests if you'd like to support more ;)* 
 
-| Platform      | Sqlite                  | SQL Server (> 2012)     | PostgreSQL               | MySQL                   |
+| Platform      | Sqlite                  | SQL Server (>= 2012)     | PostgreSQL               | MySQL                   |
 | ------------- | ----------------------: | ----------------------: | -----------------------: | ----------------------: |
 | Windows       | <ul><li> [x] </li></ul> | <ul><li> [x] </li></ul> | <ul><li> [ ] </li></ul>  | <ul><li> [ ] </li></ul> |
 | Android       | <ul><li> [x] </li></ul> |                         |                          |                         |
@@ -55,26 +55,26 @@ To give you a taste of what it looks like, here are some examples of CRUD operat
             Courses = new List<CourseModel> { englishCourse },
         };
 
-    _dbProvider.Create( jill );
+    await _dbProvider.Create( jill );
 
 **Read**
 
-    IList<StudentModel> allStudents = _dbProvider.Query<StudentModel>().Select().ToList();
-    StudentModel jill = _dbProvider.Query<StudentModel>().Where(s => s.Email == "JillEmail").Select().FirstOrDefault();
+    IList<StudentModel> allStudents = await _dbProvider.Query<StudentModel>().ToListAsync();
+    StudentModel jill = await _dbProvider.Query<StudentModel>().Where(s => s.Email == "JillEmail").FirstOrDefaultAsync();
 
 **Update**
 
     jill.Email = "JillNewEmail";
-    _dbProvider.Update<StudentModel>(jill);
+    await _dbProvider.Update<StudentModel>(jill);
 
 **Delete**  
 *note: this is still a work in progress*
 
     // first flavor
-    _dbProvider.Query<StudentModel>().Where( s => s.Email == "JillNewEmail" ).Delete();
+    await _dbProvider.Query<StudentModel>().Where( s => s.Email == "JillNewEmail" ).Delete();
 
     // second flavor
-    _dbProvider.Delete<StudentModel>(s => s.Email == "JillNewEmail");
+    await _dbProvider.Delete<StudentModel>(s => s.Email == "JillNewEmail");
 
 ### Meta ###
 
