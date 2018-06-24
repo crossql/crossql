@@ -17,7 +17,7 @@
       
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <WarningsAsErrors />
+    <WarningsAsErrors /> 
   </PropertyGroup>
 
   <ItemGroup>
