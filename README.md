@@ -5,21 +5,29 @@ A Portable, cross-platform, light weight, opinionated ORM designed to work acros
 
 ----
 
-### Status ###
+### Build Status ###
 
-| Release | Pre-Release |
+| Stable | Pre-Release |
 | ------- | :---------: |
 |         | [![Build status](https://ci.appveyor.com/api/projects/status/25stvaknw7vrpjhc?svg=true)](https://ci.appveyor.com/project/ChaseFlorell/crossql) |
+
+### Packages ###
+
+| Provider | Package Name | Stable | Pre-Release |
+| :------- | :----------- | -----: | ----------: |
+| SQLite   | crossql.sqlite |      | [![MyGet](https://img.shields.io/myget/crossql/vpre/crossql.sqlite.svg?style=flat-square&label=myget)](https://www.myget.org/feed/crossql/package/nuget/crossql.sqlite)
+| MS Sql Server   | crossql.mssqlserver |      | [![MyGet](https://img.shields.io/myget/crossql/vpre/crossql.mssqlserver.svg?style=flat-square&label=myget)](https://www.myget.org/feed/crossql/package/nuget/crossql.mssqlserver)
+
 
 ### Current Support ###
 
 *note: we take pull requests if you'd like to support more ;)* 
 
-| Platform      | Sqlite | SQL Server (2012) | PostgreSQL  | MySQL   |
-| ------------- | -----: | ----------------: | ----------: | ------: |
-| Windows       | yes    |  yes              | one day     | one day |
-| Android       | yes    |  no               | no          | no      |
-| iOS           | yes    |  no               | no          | no      |
+| Platform      | Sqlite | SQL Server (> 2012) | PostgreSQL  | MySQL   |
+| ------------- | -----: | ------------------: | ----------: | ------: |
+| Windows       | [x]    |  [x]                |             |         |
+| Android       | [x]    |  [ ]                |             |         |
+| iOS           | [x]    |  [ ]                |             |         |
 
 ### That sounds good, how do I use it? ###
 
