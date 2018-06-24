@@ -3,12 +3,12 @@
         <PackOnBuild>true</PackOnBuild>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         
-        <AssemblyVersion>1.0.0.0</AssemblyVersion>
-        <AssemblyFileVersion>1.0.0.0</AssemblyFileVersion>
-        <Version>1.0.0.0</Version>
-        <PackageVersion>1.0.0.0</PackageVersion>
-        <Authors>Chase Florell, Keith Larsen</Authors>
+        <AssemblyVersion>0.1.1.1</AssemblyVersion>
+        <AssemblyFileVersion>0.1.1.1</AssemblyFileVersion>
+        <Version>0.1.1.1</Version>
+        <PackageVersion>0.1.1.1</PackageVersion>
         <Owners>Chase Florell</Owners>
+        <Authors>Chase Florell, Keith Larsen</Authors>
         <PackageIconUrl> </PackageIconUrl>
         <NeutralLanguage>en</NeutralLanguage>
         <PackageLicenseUrl>https://github.com/crossql/crossql/blob/master/LICENSE</PackageLicenseUrl>
