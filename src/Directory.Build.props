@@ -3,10 +3,6 @@
         <PackOnBuild>true</PackOnBuild>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         
-        <AssemblyVersion>0.1.1.1</AssemblyVersion>
-        <AssemblyFileVersion>0.1.1.1</AssemblyFileVersion>
-        <Version>0.1.1.1</Version>
-        <PackageVersion>0.1.1.1</PackageVersion>
         <Owners>Chase Florell</Owners>
         <Authors>Chase Florell, Keith Larsen</Authors>
         <PackageIconUrl> </PackageIconUrl>

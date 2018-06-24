@@ -6,6 +6,11 @@
     <RootNamespace>crossql</RootNamespace>
     <GenerateDocumentationFile Condition=" '$(Configuration)' == 'Release' ">true</GenerateDocumentationFile>
 
+    <AssemblyVersion>0.1.1.1</AssemblyVersion>
+    <AssemblyFileVersion>0.1.1.1</AssemblyFileVersion>
+    <Version>0.1.1.1</Version>
+    <PackageVersion>0.1.1.1</PackageVersion>
+    
     <PackageId>crossql.core</PackageId>
     <PackageTags>xamarin, windows, ios, android, netstandard</PackageTags>
     <Title>crossql - A Cross Plataform ORM</Title>
