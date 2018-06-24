@@ -7,7 +7,6 @@
     <GenerateDocumentationFile Condition=" '$(Configuration)' == 'Release' ">true</GenerateDocumentationFile>
 
     <PackageId>crossql.core</PackageId>
-    <PackOnBuild>true</PackOnBuild>
     <PackageTags>xamarin, windows, ios, android, netstandard</PackageTags>
     <Title>crossql - A Cross Plataform ORM</Title>
     
