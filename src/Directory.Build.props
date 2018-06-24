@@ -15,5 +15,10 @@
         <RepositoryUrl>https://github.com/crossql/crossql</RepositoryUrl>
         <PackageReleaseNotes>See: https://github.com/crossql/crossql </PackageReleaseNotes>
         <LangVersion>default</LangVersion>
+
+        <AssemblyVersion>0.1.1.1</AssemblyVersion>
+        <AssemblyFileVersion>0.1.1.1</AssemblyFileVersion>
+        <Version>0.1.1.1</Version>
+        <PackageVersion>0.1.1.1</PackageVersion>
     </PropertyGroup>
 </Project>
