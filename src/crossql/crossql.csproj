@@ -14,9 +14,7 @@
     <AssemblyFileVersion>0.1.1.1</AssemblyFileVersion>
     <Version>0.1.1.1</Version>
     <PackageVersion>0.1.1.1</PackageVersion>
-    
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <WarningsAsErrors />
-  </PropertyGroup>
+
+    <PackOnBuild>true</PackOnBuild>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>  </PropertyGroup>
 </Project>
