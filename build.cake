@@ -21,20 +21,10 @@ Setup(context =>
 
 Task("Default").IsDependentOn("Run-Unit-Tests");
 
-Task("Build Sql Server").Does(() => {
-      MSBuild("./src/crossql.mssqlserver/crossql.mssqlserver.csproj", settings =>
-        settings.SetConfiguration(configuration));
-});
-
-Task("Build Sqlite").Does(() => {
-      MSBuild("./src/crossql.sqlite/crossql.sqlite.csproj", settings =>
-        settings.SetConfiguration(configuration));
-});
-
-Task("Build Tests")
+Task("Build")
     .IsDependentOn("XDT Transform")
     .Does(() => {
-    MSBuild("./tests/crossql.tests/crossql.tests.csproj", settings =>
+      MSBuild("./crossql.sln", settings =>
         settings.SetConfiguration(configuration));
 });
 
@@ -58,9 +48,7 @@ Task("XDT Transform")
     });
 
 Task("Run-Unit-Tests")
-    .IsDependentOn("Build Sql Server")
-    .IsDependentOn("Build Sqlite")
-    .IsDependentOn("Build Tests")
+    .IsDependentOn("Build")
     .Does(() =>
 {
     var resultsFile = artifactsDir + "/test-results.xml";
