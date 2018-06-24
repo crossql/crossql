@@ -4,4 +4,7 @@ services: mssql2017
 build_script:
     - ps: ./build -environment="ci"
 artifacts:
-    - path: 'artifacts/*.nupkg'
+    - path: '**/*.nupkg'
+    - type: NuGetPackage
+after_build:
+    - ps: Get-ChildItem .\*.nupkg | % { Push-AppveyorArtifact $_.FullName -FileName $_.Name }
