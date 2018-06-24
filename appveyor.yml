@@ -1,0 +1,7 @@
+version: 1.0.0.{build}
+image: Visual Studio 2017
+services: mssql2017
+build_script:
+- ps: ./build -environment="ci"
+artifacts:
+  - path: '**\crossql.*.nupkg'

@@ -1,0 +1,23 @@
+<Project>
+    <PropertyGroup>
+        <PackOnBuild>true</PackOnBuild>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        
+        <AssemblyVersion>1.0.0.0</AssemblyVersion>
+        <AssemblyFileVersion>1.0.0.0</AssemblyFileVersion>
+        <Version>1.0.0.0</Version>
+        <PackageVersion>1.0.0.0</PackageVersion>
+        <Authors>Chase Florell, Keith Larsen</Authors>
+        <Owners>Chase Florell</Owners>
+        <PackageIconUrl> </PackageIconUrl>
+        <NeutralLanguage>en</NeutralLanguage>
+        <PackageLicenseUrl>https://github.com/crossql/crossql/blob/master/LICENSE</PackageLicenseUrl>
+        <PackageProjectUrl>https://github.com/crossql/crossql</PackageProjectUrl>
+        <Summary>A Portable, cross-platform, light weight, opinionated ORM designed to work across multiple Databases.</Summary>
+        <Description>A Portable, cross-platform, light weight, opinionated ORM designed to work across multiple Databases.</Description>
+        <Copyright>2018 | Chase Florell</Copyright>
+        <RepositoryUrl>https://github.com/crossql/crossql</RepositoryUrl>
+        <PackageReleaseNotes>See: https://github.com/crossql/crossql </PackageReleaseNotes>
+        <LangVersion>default</LangVersion>
+    </PropertyGroup>
+</Project>
