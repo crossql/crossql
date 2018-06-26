@@ -1,4 +1,4 @@
-﻿namespace crossql
+﻿namespace crossql.Migrations
 {
     public enum MigrationStep
     {
@@ -49,6 +49,11 @@
         /// (Decided by inspecting <see cref="SystemRole"/>)
         /// This is typically used for seeding data or cleanup.
         /// </summary>
-        ServerFinish = 8
+        ServerFinish = 8,
+        
+        /// <summary>
+        /// Unknown step.
+        /// </summary>
+        Unknown
     }
 }
