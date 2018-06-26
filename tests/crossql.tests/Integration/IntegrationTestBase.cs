@@ -18,7 +18,7 @@ namespace crossql.tests.Integration
     {
         private static readonly string _testDbName = ConfigurationManager.AppSettings["databaseName"];
 
-        public static IEnumerable<IDbProvider> DbProviders()
+        protected static IEnumerable<IDbProvider> DbProviders()
         {
             return SqliteOnly().Concat(MsSqlOnly());
         }

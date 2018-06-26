@@ -3,14 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using crossql.Extensions;
-using crossql.Models;
+using Version = crossql.Models.Version;
 
 namespace crossql.Migrations
 {
     public class MigrationRunner : IMigrationRunner
     {
         private readonly IDbProvider _dbProvider;
-        private SystemRole _systemRole;
 
         public MigrationRunner(IDbProvider dbProvider)
         {
@@ -20,182 +19,230 @@ namespace crossql.Migrations
         public async Task CreateDatabase()
         {
             // Check if our database exists yet
-            if (! await _dbProvider.CheckIfDatabaseExists().ConfigureAwait(false))
-            {
+            var databaseExists = await _dbProvider.CheckIfDatabaseExists().ConfigureAwait(false);
+            if (!databaseExists)
                 await _dbProvider.CreateDatabase().ConfigureAwait(false);
-            }
 
-            // Check if DatabaseVersion table is setup, if not, create it.
-            if (!await _dbProvider.CheckIfTableExists(WellKnownValues.VersionTableName).ConfigureAwait(false))
-            {
-                var database = new Database(_dbProvider.DatabaseName, _dbProvider.Dialect);
-
-                var dbVersionTable = database.AddTable(WellKnownValues.VersionTableName);
-                dbVersionTable.AddColumn("VersionNumber", typeof (int)).PrimaryKey().Clustered().NotNullable();
-                dbVersionTable.AddColumn("MigrationDate", typeof (DateTime)).NotNullable();
-                dbVersionTable.AddColumn("IsBeforeMigrationComplete", typeof (bool)).NotNullable(true);
-                dbVersionTable.AddColumn("IsMigrationComplete", typeof (bool)).NotNullable(true);
-                dbVersionTable.AddColumn("IsAfterMigrationComplete", typeof (bool)).NotNullable(true);
-
-                await _dbProvider.ExecuteNonQuery(database.ToString()).ConfigureAwait(false);
-            }
-            else
-            {
-                // Check if the new fields have bee added to the DatabaseVersion table yet, if not add them.
-                if (!await _dbProvider.CheckIfTableColumnExists(WellKnownValues.VersionTableName, "IsBeforeMigrationComplete").ConfigureAwait(false))
-                {
-                    var database = new Database(_dbProvider.DatabaseName, _dbProvider.Dialect);
-
-                    var dbVersionTable = database.UpdateTable(WellKnownValues.VersionTableName);
-                    dbVersionTable.AddColumn("IsBeforeMigrationComplete", typeof (bool)).NotNullable(true);
-                    dbVersionTable.AddColumn("IsMigrationComplete", typeof (bool)).NotNullable(true);
-                    dbVersionTable.AddColumn("IsAfterMigrationComplete", typeof (bool)).NotNullable(true);
-
-                    await _dbProvider.ExecuteNonQuery(database.ToString()).ConfigureAwait(false);
-                }
-            }
+            await CreateSystemTables().ConfigureAwait(false);
         }
 
         public async Task DropDatabase()
         {
             // drop the database in the tear down process.
             // this should only be run from the integration tests.
-            if (await _dbProvider.CheckIfDatabaseExists().ConfigureAwait(false))
-            {
-                await _dbProvider.DropDatabase().ConfigureAwait(false);
-            }
+            var databaseExists = await _dbProvider.CheckIfDatabaseExists().ConfigureAwait(false);
+            if (databaseExists) await _dbProvider.DropDatabase().ConfigureAwait(false);
         }
 
-        public async Task RunAll(SystemRole systemRole, IList<IDbMigration> migrations)
+        public async Task RunAll(SystemRole systemRole, IEnumerable<IDbMigration> migrations)
         {
-            _systemRole = systemRole;
-
             await CreateDatabase().ConfigureAwait(false);
 
-            var orderedMigrations = migrations.OrderBy(m => m.GetType().Name);
+            var orderedMigrations = migrations.OrderBy(m => m.MigrationVersion);
 
-            foreach (var migration in orderedMigrations)
-            {
-                var databaseVersion = await GetMigrationInformationAsync(migration).ConfigureAwait(false);
-
-                await RunBeforeMigration(migration,  databaseVersion).ConfigureAwait(false);
-                await RunMigration(migration,  databaseVersion).ConfigureAwait(false);
-                await RunAfterMigration(migration,  databaseVersion).ConfigureAwait(false);
-            }
+            foreach (var migration in orderedMigrations) await Run(systemRole, migration).ConfigureAwait(false);
         }
 
         public async Task Run(SystemRole systemRole, IDbMigration migration)
         {
-            _systemRole = systemRole;
-
             var databaseVersion = await GetMigrationInformationAsync(migration).ConfigureAwait(false);
 
-            await RunBeforeMigration(migration,  databaseVersion).ConfigureAwait(false);
-            await RunMigration(migration,  databaseVersion).ConfigureAwait(false);
-            await RunAfterMigration(migration,  databaseVersion).ConfigureAwait(false);
+            await RunBeforeMigration(migration, databaseVersion, systemRole).ConfigureAwait(false);
+            await RunMigration(migration, databaseVersion, systemRole).ConfigureAwait(false);
+            await RunAfterMigration(migration, databaseVersion, systemRole).ConfigureAwait(false);
         }
 
-        private async Task RunBeforeMigration(IDbMigration migration, DatabaseVersionModel databaseVersion)
+        private async Task RunBeforeMigration(
+            IDbMigration migration,
+            Version version,
+            SystemRole systemRole)
         {
             // Check Actual DatabaseVersion against the migration version
             // Don't run unless this Migrations BeforeMigration has not been run
-            if (databaseVersion.IsBeforeMigrationComplete == false)
+            if (!version.IsSetupComplete)
             {
-                // Before Migrate
-
-                await migration.RunOrderedMigration(MigrationStep.Setup, _dbProvider).ConfigureAwait(false);
-
-                if (_systemRole == SystemRole.Server)
+                switch (systemRole)
                 {
-                    await migration.RunOrderedMigration(MigrationStep.ServerSetup, _dbProvider).ConfigureAwait(false);
+                    case SystemRole.Server:
+                        await InternalRunMigration(migration, MigrationStep.ServerSetup, _dbProvider).ConfigureAwait(false);
+                        break;
+                    case SystemRole.Client:
+                        await InternalRunMigration(migration, MigrationStep.ClientSetup, _dbProvider).ConfigureAwait(false);
+                        break;
                 }
-                if (_systemRole == SystemRole.Client)
-                {
-                    await migration.RunOrderedMigration(MigrationStep.ClientSetup, _dbProvider).ConfigureAwait(false);
-                }
+
+                await InternalRunMigration(migration, MigrationStep.Setup, _dbProvider).ConfigureAwait(false);
 
                 // Update the database version to show the before migration has been run
-                databaseVersion.IsBeforeMigrationComplete = true;
-                await _dbProvider.Query<DatabaseVersionModel>()
+                version.IsSetupComplete = true;
+                await _dbProvider.Query<Version>()
                     .Where(dbv => dbv.VersionNumber == migration.MigrationVersion)
-                    .Update(databaseVersion)
+                    .Update(version)
                     .ConfigureAwait(false);
             }
         }
 
-        private async Task RunMigration(IDbMigration migration, DatabaseVersionModel databaseVersion)
+        private async Task RunMigration(
+            IDbMigration migration, 
+            Version version,
+            SystemRole systemRole)
         {
             // Check Actual DatabaseVersion against the migration version
             // Don't run unless this Migrations Migration has not been run
-            if (databaseVersion.IsMigrationComplete == false)
+            if (!version.IsMigrationComplete)
             {
-                await migration.RunOrderedMigration(MigrationStep.Migrate, _dbProvider).ConfigureAwait(false);
-
-                switch (_systemRole) {
+                switch (systemRole)
+                {
                     case SystemRole.Server:
-                        await migration.RunOrderedMigration(MigrationStep.ServerMigrate, _dbProvider).ConfigureAwait(false);
+                        await InternalRunMigration(migration, MigrationStep.ServerMigrate, _dbProvider)
+                            .ConfigureAwait(false);
                         break;
                     case SystemRole.Client:
-                        await migration.RunOrderedMigration(MigrationStep.ClientMigrate, _dbProvider).ConfigureAwait(false);
+                        await InternalRunMigration(migration, MigrationStep.ClientMigrate, _dbProvider)
+                            .ConfigureAwait(false);
                         break;
                 }
 
-                // Update the database version to show the migration has been run
-                databaseVersion.IsMigrationComplete = true;
-                await _dbProvider.Query<DatabaseVersionModel>()
+                await InternalRunMigration(migration, MigrationStep.Migrate, _dbProvider).ConfigureAwait(false);
+
+                // Update the database version to show the before migration has been run
+                version.IsMigrationComplete = true;
+                await _dbProvider.Query<Version>()
                     .Where(dbv => dbv.VersionNumber == migration.MigrationVersion)
-                    .Update(databaseVersion)
+                    .Update(version)
                     .ConfigureAwait(false);
             }
-
         }
 
-        private async Task RunAfterMigration(IDbMigration migration, DatabaseVersionModel databaseVersion)
+        private async Task RunAfterMigration(IDbMigration migration, Version version,
+            SystemRole systemRole)
         {
             // Check Actual DatabaseVersion against the migration version
-            // Don't run unless the MigrationVersion is 1 more than DatabaseVersion
-            if (databaseVersion.IsAfterMigrationComplete == false)
+            // Don't run unless this Migrations AfterMigration has not been run
+            if (!version.IsFinishComplete)
             {
-                await migration.RunOrderedMigration(MigrationStep.Finish, _dbProvider).ConfigureAwait(false);
-
-                if (_systemRole == SystemRole.Server)
+                switch (systemRole)
                 {
-                    await migration.RunOrderedMigration(MigrationStep.ServerFinish, _dbProvider).ConfigureAwait(false);
-                }
-                if (_systemRole == SystemRole.Client)
-                {
-                    await migration.RunOrderedMigration(MigrationStep.ClientFinish, _dbProvider).ConfigureAwait(false);
+                    case SystemRole.Server:
+                        await InternalRunMigration(migration, MigrationStep.ServerFinish, _dbProvider).ConfigureAwait(false);
+                        break;
+                    case SystemRole.Client:
+                        await InternalRunMigration(migration, MigrationStep.ClientFinish, _dbProvider).ConfigureAwait(false);
+                        break;
                 }
 
-                // Update the database version to show the after migration has been run
-                databaseVersion.IsAfterMigrationComplete = true;
-                await _dbProvider.Query<DatabaseVersionModel>()
+                await InternalRunMigration(migration, MigrationStep.Finish, _dbProvider).ConfigureAwait(false);
+
+                // Update the database version to show the before migration has been run
+                version.IsFinishComplete = true;
+                await _dbProvider.Query<Version>()
                     .Where(dbv => dbv.VersionNumber == migration.MigrationVersion)
-                    .Update(databaseVersion)
+                    .Update(version)
                     .ConfigureAwait(false);
             }
         }
-
-        private async Task<DatabaseVersionModel> GetMigrationInformationAsync(IDbMigration migration)
+        
+        private async Task InternalRunMigration(
+            IDbMigration migration, 
+            MigrationStep migrationStep,
+            IDbProvider dbProvider)
         {
-            var databaseVersions = await _dbProvider.Query<DatabaseVersionModel>()
+            var failedStep = MigrationStep.Unknown;
+            try
+            {
+                var database = new Database(dbProvider.DatabaseName, dbProvider.Dialect);
+                switch (migrationStep)
+                {
+                    case MigrationStep.Setup:
+                        failedStep = MigrationStep.Setup;
+                        await migration.SetupMigration(database, dbProvider).ConfigureAwait(false);
+                        break;
+                    case MigrationStep.Migrate:
+                        failedStep = MigrationStep.Migrate;
+                        await migration.Migrate(database, dbProvider).ConfigureAwait(false);
+                        break;
+                    case MigrationStep.Finish:
+                        failedStep = MigrationStep.Finish;
+                        await migration.FinishMigration(database, dbProvider).ConfigureAwait(false);
+                        break;
+                    case MigrationStep.ClientSetup:
+                        failedStep = MigrationStep.ClientSetup;
+                        await migration.ClientSetupMigration(database, dbProvider).ConfigureAwait(false);
+                        break;
+                    case MigrationStep.ClientMigrate:
+                        failedStep = MigrationStep.ClientMigrate;
+                        await migration.ClientMigrate(database, dbProvider).ConfigureAwait(false);
+                        break;
+                    case MigrationStep.ClientFinish:
+                        failedStep = MigrationStep.ClientFinish;
+                        await migration.ClientFinishMigration(database, dbProvider).ConfigureAwait(false);
+                        break;
+                    case MigrationStep.ServerSetup:
+                        failedStep = MigrationStep.ServerSetup;
+                        await migration.ServerSetupMigration(database, dbProvider).ConfigureAwait(false);
+                        break;
+                    case MigrationStep.ServerMigrate:
+                        failedStep = MigrationStep.ServerMigrate;
+                        await migration.ServerMigrate(database, dbProvider).ConfigureAwait(false);
+                        break;
+                    case MigrationStep.ServerFinish:
+                        failedStep = MigrationStep.ServerFinish;
+                        await migration.ServerFinishMigration(database, dbProvider).ConfigureAwait(false);
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException(nameof(migrationStep), migrationStep, $"An invalid {nameof(MigrationStep)} was passed to the {nameof(MigrationRunner)}");
+                }
+
+                var dbCommand = database.ToString();
+                if (!string.IsNullOrWhiteSpace(dbCommand))
+                    await _dbProvider.ExecuteNonQuery(dbCommand);
+            }
+            catch (Exception ex)
+            {
+                var database = new Database(dbProvider.DatabaseName, dbProvider.Dialect);
+                await migration.MigrationFailed(database, dbProvider, failedStep, ex);
+                throw;
+            }
+        }
+
+        private async Task<Version> GetMigrationInformationAsync(IDbMigration migration)
+        {
+            var databaseVersion = await _dbProvider.Query<Version>()
                 .Where(dbv => dbv.VersionNumber == migration.MigrationVersion)
                 .OrderBy(v => v.VersionNumber, OrderDirection.Descending)
-                .Select()
+                .FirstOrDefaultAsync()
                 .ConfigureAwait(false);
-            var databaseVersion = databaseVersions.FirstOrDefault();
 
-            if (databaseVersion == null)
+            if (databaseVersion != null) return databaseVersion;
+
+            databaseVersion = new Version
             {
-                databaseVersion = new DatabaseVersionModel
-                {
-                    VersionNumber = migration.MigrationVersion,
-                    MigrationDate = DateTime.UtcNow
-                };
-                await _dbProvider.Create(databaseVersion).ConfigureAwait(false);
-            }
+                VersionNumber = migration.MigrationVersion,
+                MigrationDate = DateTimeOffset.Now
+            };
+            await _dbProvider.Create(databaseVersion).ConfigureAwait(false);
 
             return databaseVersion;
+        }
+
+        private async Task CreateSystemTables()
+        {
+            // Check if DatabaseVersion table is setup, if not, create it.
+            var versionTableExists = await _dbProvider.CheckIfTableExists(WellKnownValues.VersionTableName).ConfigureAwait(false);
+            if (!versionTableExists)
+            {
+                var database = new Database(_dbProvider.DatabaseName, _dbProvider.Dialect);
+
+                var dbVersionTable = database.AddTable(WellKnownValues.VersionTableName);
+                dbVersionTable.AddColumn(nameof(Version.VersionNumber), typeof(int)).PrimaryKey().Clustered().NotNullable();
+                dbVersionTable.AddColumn(nameof(Version.MigrationDate), typeof(DateTimeOffset)).NotNullable();
+                dbVersionTable.AddColumn(nameof(Version.IsSetupComplete), typeof(bool)).NotNullable(true);
+                dbVersionTable.AddColumn(nameof(Version.IsMigrationComplete), typeof(bool)).NotNullable(true);
+                dbVersionTable.AddColumn(nameof(Version.IsFinishComplete), typeof(bool)).NotNullable(true);
+
+                var schema = database.ToString();
+                await _dbProvider.ExecuteNonQuery(schema).ConfigureAwait(false);
+            }
         }
     }
 }

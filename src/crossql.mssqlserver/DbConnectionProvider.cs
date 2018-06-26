@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Data;
 using System.Data.Common;
+using System.Data.SqlClient;
 using System.Threading.Tasks;
 
 namespace crossql.mssqlserver
@@ -18,12 +19,8 @@ namespace crossql.mssqlserver
 
         public async Task<IDbConnection> GetOpenConnection()
         {
-            var dbFactory = DbProviderFactories.GetFactory(_connectionProviderName);
+            var connection = new SqlConnection {ConnectionString = _connectionString};
 
-            var connection = dbFactory.CreateConnection();
-            if (connection == null) throw new Exception("Could not create a database connection.");
-
-            connection.ConnectionString = string.Format(_connectionString);
             await  connection.OpenAsync().ConfigureAwait(false);
 
             return connection;

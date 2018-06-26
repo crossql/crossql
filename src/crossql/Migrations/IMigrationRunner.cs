@@ -8,6 +8,6 @@ namespace crossql.Migrations
         Task CreateDatabase();
         Task DropDatabase();
         Task Run(SystemRole systemRole, IDbMigration migrations);
-        Task RunAll(SystemRole systemRole, IList<IDbMigration> migrations);
+        Task RunAll(SystemRole systemRole, IEnumerable<IDbMigration> migrations);
     }
 }
