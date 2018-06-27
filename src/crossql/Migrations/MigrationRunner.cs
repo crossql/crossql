@@ -16,6 +16,7 @@ namespace crossql.Migrations
             _dbProvider = dbProvider;
         }
 
+        /// <inheritdoc cref="IMigrationRunner"/>
         public async Task CreateDatabase()
         {
             // Check if our database exists yet
@@ -26,6 +27,7 @@ namespace crossql.Migrations
             await CreateSystemTables().ConfigureAwait(false);
         }
 
+        /// <inheritdoc cref="IMigrationRunner"/>
         public async Task DropDatabase()
         {
             // drop the database in the tear down process.
@@ -34,6 +36,7 @@ namespace crossql.Migrations
             if (databaseExists) await _dbProvider.DropDatabase().ConfigureAwait(false);
         }
 
+        /// <inheritdoc cref="IMigrationRunner"/>
         public async Task RunAll(SystemRole systemRole, IEnumerable<IDbMigration> migrations)
         {
             await CreateDatabase().ConfigureAwait(false);
@@ -43,6 +46,7 @@ namespace crossql.Migrations
             foreach (var migration in orderedMigrations) await Run(systemRole, migration).ConfigureAwait(false);
         }
 
+        /// <inheritdoc cref="IMigrationRunner"/>
         public async Task Run(SystemRole systemRole, IDbMigration migration)
         {
             var databaseVersion = await GetMigrationInformationAsync(migration).ConfigureAwait(false);
