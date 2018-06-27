@@ -5,10 +5,10 @@ namespace crossql.Exceptions
 {
     public class ExpressionMethodCallNotSupportedException : Exception
     {
-        private const string _methodNotSupported = "The method call '{0}' is not supported.";
+        private const string _MethodNotSupported = "The method call '{0}' is not supported.";
 
         public ExpressionMethodCallNotSupportedException(MethodCallExpression expression)
-            : base(string.Format(_methodNotSupported, expression.Method.Name))
+            : base(string.Format(_MethodNotSupported, expression.Method.Name))
         {
         }
     }

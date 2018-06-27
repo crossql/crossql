@@ -5,10 +5,10 @@ namespace crossql.Exceptions
 {
     internal class ExpressionBinaryOperatorNotSupportedException : Exception
     {
-        private const string _operatorNotSupported = "The binary operator '{0}' is not supported.";
+        private const string _OperatorNotSupported = "The binary operator '{0}' is not supported.";
 
         public ExpressionBinaryOperatorNotSupportedException(BinaryExpression expression)
-            : base(string.Format(_operatorNotSupported, expression.NodeType))
+            : base(string.Format(_OperatorNotSupported, expression.NodeType))
         {
         }
     }

@@ -13,6 +13,7 @@
             _increment = increment;
         }
 
+        /// <inheritdoc cref="IConstraint"/>
         public override string ToString() => string.Format(_dialect.AutoIncrement, _start, _increment);
     }
 }
