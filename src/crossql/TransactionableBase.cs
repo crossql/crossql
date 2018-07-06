@@ -12,18 +12,18 @@ namespace crossql
 {
     public abstract class TransactionableBase : ITransactionable, ITransactionRunner, IDisposable
     {
-        protected readonly IDialect Dialect;
-        protected readonly IDbConnectionProvider Provider;
-        protected IDbConnection Connection;
-        protected IDbTransaction Transaction;
+        protected readonly IDialect _Dialect;
+        protected readonly IDbConnectionProvider _Provider;
+        protected IDbConnection _Connection;
+        protected IDbTransaction _Transaction;
 
         protected TransactionableBase(IDbConnectionProvider provider, IDialect dialect)
         {
-            Provider = provider;
-            Dialect = dialect;
+            _Provider = provider;
+            _Dialect = dialect;
         }
 
-        public void Commit() => Transaction.Commit();
+        public void Commit() => _Transaction.Commit();
 
         public async Task Create<TModel>(TModel model, IDbMapper<TModel> dbMapper) where TModel : class, new()
         {
@@ -33,7 +33,7 @@ namespace crossql
 
             var parameters = "@" + string.Join(",@", fieldNameList);
             var fields = string.Join(",", fieldNameList);
-            var commandText = string.Format(Dialect.InsertInto, tableName, fields, parameters);
+            var commandText = string.Format(_Dialect.InsertInto, tableName, fields, parameters);
 
             await ExecuteNonQuery(commandText, commandParams).ConfigureAwait(false);
 
@@ -44,33 +44,33 @@ namespace crossql
 
         public Task Delete<TModel>(Expression<Func<TModel, bool>> expression) where TModel : class, new()
         {
-            var visitor = new WhereExpressionVisitor().Visit(expression);
+            var visitor = new WhereExpressionVisitor(_Dialect).Visit(expression);
 
             // this is a hard delete. soft deletes will happen in the repository layer.
             var tableName = typeof(TModel).BuildTableName();
-            var whereClause = string.Format(Dialect.Where, visitor.WhereExpression);
-            var commandText = string.Format(Dialect.DeleteFrom, tableName, whereClause);
+            var whereClause = string.Format(_Dialect.Where, visitor.WhereExpression);
+            var commandText = string.Format(_Dialect.DeleteFrom, tableName, whereClause);
 
             return ExecuteNonQuery(commandText, visitor.Parameters);
         }
 
         public void Dispose()
         {
-            Connection?.Dispose();
-            Transaction?.Dispose();
+            _Connection?.Dispose();
+            _Transaction?.Dispose();
         }
 
         public abstract Task ExecuteNonQuery(string commandText, IDictionary<string, object> parameters);
 
         public async Task Initialize(bool useTransaction)
         {
-            Connection = await Provider.GetOpenConnection();
+            _Connection = await _Provider.GetOpenConnection();
 
             if (useTransaction)
-                Transaction = Connection.BeginTransaction();
+                _Transaction = _Connection.BeginTransaction();
         }
 
-        public void Rollback() => Transaction.Rollback();
+        public void Rollback() => _Transaction.Rollback();
 
         public async Task Update<TModel>(TModel model, IDbMapper<TModel> dbMapper) where TModel : class, new()
         {
@@ -81,9 +81,9 @@ namespace crossql
             var fieldNameList = dbMapper.FieldNames;
             var commandParams = dbMapper.BuildDbParametersFrom(model);
 
-            var setFieldText = fieldNameList.Select(field => string.Format("[{0}] = @{0}", field)).ToList();
-            var whereClause = string.Format(Dialect.Where, string.Format("{0} = @{0}", identifierName));
-            var commandText = string.Format(Dialect.Update, tableName, string.Join(",", setFieldText),
+            var setFieldText = fieldNameList.Select(field => string.Format("{1}{0}{2} = @{0}", field,_Dialect.OpenBrace,_Dialect.CloseBrace)).ToList();
+            var whereClause = string.Format(_Dialect.Where, string.Format("{0} = @{0}", identifierName));
+            var commandText = string.Format(_Dialect.Update, tableName, string.Join(",", setFieldText),
                 whereClause);
 
             await ExecuteNonQuery(commandText, commandParams).ConfigureAwait(false);
@@ -115,8 +115,8 @@ namespace crossql
                 //                }
 
                 var joinTableName = GetJoinTableName(tableName, collection.Name);
-                var deleteWhereClause = string.Format(Dialect.Where, string.Format("{0} = @{0}", leftKey));
-                var deleteCommandText = string.Format(Dialect.DeleteFrom, joinTableName, deleteWhereClause);
+                var deleteWhereClause = string.Format(_Dialect.Where, string.Format("{0} = @{0}", leftKey));
+                var deleteCommandText = string.Format(_Dialect.DeleteFrom, joinTableName, deleteWhereClause);
                 // Delete ALL records in the Join table associated with the `leftModel`
                 await ExecuteNonQuery(deleteCommandText, parameters).ConfigureAwait(false);
 
@@ -138,11 +138,11 @@ namespace crossql
                         var rightKey = manyToManyCollectionName + rightPropertyName;
                         var rightValue = rightProperty.GetValue(value, null);
                         parameters.Add("@" + rightKey, rightValue);
-                        var fieldsToInsert = string.Format(Dialect.JoinFields, leftKey, rightKey);
+                        var fieldsToInsert = string.Format(_Dialect.JoinFields, leftKey, rightKey);
                         // "[{0}], [{1}]"
-                        var parametersToSet = string.Format(Dialect.JoinParameters, leftKey, rightKey);
+                        var parametersToSet = string.Format(_Dialect.JoinParameters, leftKey, rightKey);
                         // "@{0}, @{1}"
-                        var insertCommandText = string.Format(Dialect.InsertInto, joinTableName,
+                        var insertCommandText = string.Format(_Dialect.InsertInto, joinTableName,
                             fieldsToInsert,
                             parametersToSet);
                         await ExecuteNonQuery(insertCommandText, parameters).ConfigureAwait(false);

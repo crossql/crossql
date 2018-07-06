@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq.Expressions;
+using crossql.mssqlserver;
 using crossql.tests.Helpers.Models;
 using NUnit.Framework;
 
@@ -11,7 +12,7 @@ namespace crossql.tests.Unit
         public static OrderByExpressionVisitor OrderByExpression<TModel>(Expression<Func<TModel, object>> expression)
             where TModel : class, new()
         {
-            var visitor = new OrderByExpressionVisitor().Visit(expression);
+            var visitor = new OrderByExpressionVisitor(new SqlServerDialect()).Visit(expression);
             return visitor;
         }
 

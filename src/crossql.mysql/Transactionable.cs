@@ -1,14 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.SqlClient;
 using System.Linq;
-using System.Reflection;
 using System.Threading.Tasks;
 using crossql.Extensions;
+using MySql.Data.MySqlClient;
+
 // ReSharper disable AccessToDisposedClosure
 
-namespace crossql.mssqlserver
+namespace crossql.mysql
 {
     public class Transactionable : TransactionableBase
     {
@@ -30,7 +30,7 @@ namespace crossql.mssqlserver
 
             var insertParams = "@" + string.Join(",@", fieldNameList);
             var insertFields = string.Join(",", fieldNameList);
-            var updateFields = string.Join(",", fieldNameList.Select(field => string.Format("[{0}] = @{0}", field)).ToList());
+            var updateFields = string.Join(",", fieldNameList.Select(field => string.Format("{1}{0}{2} = @{0}", field,_Dialect.OpenBrace,_Dialect.CloseBrace)).ToList());
             var whereClause = string.Format(_Dialect.Where, string.Format("{0} = @{0}", modelType.GetPrimaryKeyName()));
 
             var commandText = string.Format(_Dialect.CreateOrUpdate,
@@ -53,7 +53,7 @@ namespace crossql.mssqlserver
 
                 command.CommandType = CommandType.Text;
                 command.CommandText = useStatement + commandText;
-                parameters.ForEach(param => command.Parameters.Add(new SqlParameter(param.Key, param.Value ?? DBNull.Value)));
+                parameters.ForEach(param => command.Parameters.Add(new MySqlParameter(param.Key, param.Value ?? DBNull.Value)));
 
                 try
                 {

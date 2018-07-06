@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
+using crossql.mssqlserver;
 using crossql.tests.Helpers.Models;
 using NUnit.Framework;
 
@@ -11,7 +12,7 @@ namespace crossql.tests.Unit
     {
         public static WhereExpressionVisitor TestExpression<TModel>(Expression<Func<TModel, object>> expression) where TModel : class, new()
         {
-            var visitor = new WhereExpressionVisitor().Visit(expression);
+            var visitor = new WhereExpressionVisitor(new SqlServerDialect()).Visit(expression);
             return visitor;
         }
 

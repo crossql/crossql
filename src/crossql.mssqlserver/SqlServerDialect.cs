@@ -146,6 +146,11 @@ END;";
         public string OrderBy => "ORDER BY {0} {1}";
 
         public string Truncate => "TRUNCATE TABLE {0}";
+        
         public string AutoIncrement => "IDENTITY({0},{1})";
+        
+        public string OpenBrace => "[";
+        
+        public string CloseBrace => "]";
     }
 }
