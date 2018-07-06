@@ -10,8 +10,10 @@ using crossql.tests.Helpers.Migrations;
 using crossql.tests.Helpers.Models;
 using NUnit.Framework;
 using SqlDbConnectionProvider = crossql.mssqlserver.DbConnectionProvider;
+using MySqlConnectionProvider = crossql.mysql.DbConnectionProvider;
 using SqlDbProvider = crossql.mssqlserver.DbProvider;
 using SqliteDbProvider = crossql.sqlite.DbProvider;
+using MySqlDbProvider = crossql.mysql.DbProvider;
 namespace crossql.tests.Integration
 {
     public abstract class IntegrationTestBase
@@ -20,7 +22,8 @@ namespace crossql.tests.Integration
 
         protected static IEnumerable<IDbProvider> DbProviders()
         {
-            return SqliteOnly().Concat(MsSqlOnly());
+            return MySqlOnly();
+            return SqliteOnly().Concat(MsSqlOnly()).Concat(MySqlOnly());
         }
 
         public static IEnumerable<IDbProvider> SqliteOnly()
@@ -31,12 +34,22 @@ namespace crossql.tests.Integration
 
         public static IEnumerable<IDbProvider> MsSqlOnly()
         {
-            var sqlServerConnection = ConfigurationManager.ConnectionStrings["databaseConnection"];
+            var sqlServerConnection = ConfigurationManager.ConnectionStrings["sqlServerConnection"];
 
             var sqlDbConnectionProvider = new SqlDbConnectionProvider(
                 sqlServerConnection.ConnectionString,
                 sqlServerConnection.ProviderName);            
             yield return new SqlDbProvider(sqlDbConnectionProvider, _testDbName, SetConfig);
+        }
+
+        public static IEnumerable<IDbProvider> MySqlOnly()
+        {
+            var mysqlConnection = ConfigurationManager.ConnectionStrings["mySqlConnection"];
+
+            var mySqlDbConnectionProvider = new MySqlConnectionProvider(
+                mysqlConnection.ConnectionString,
+                mysqlConnection.ProviderName);            
+            yield return new MySqlDbProvider(mySqlDbConnectionProvider, _testDbName, SetConfig);
         }
 
         [OneTimeSetUp]

@@ -25,7 +25,7 @@ namespace crossql
 
         public IDbScalar<TModel, TReturnType> Where(Expression<Func<TModel, object>> expression)
         {
-            _whereExpressionVisitor = new WhereExpressionVisitor().Visit(expression);
+            _whereExpressionVisitor = new WhereExpressionVisitor(_dbProvider.Dialect).Visit(expression);
             _whereClause = string.Format(_dbProvider.Dialect.Where, _whereExpressionVisitor.WhereExpression);
             _parameters = _whereExpressionVisitor.Parameters;
 

@@ -134,6 +134,11 @@
         public string OrderBy => "ORDER BY {0} {1}";
 
         public string Truncate => "DELETE FROM {0}";
+        
         public string AutoIncrement => "";
+        
+        public string OpenBrace => "[";
+        
+        public string CloseBrace => "]";
     }
 }
