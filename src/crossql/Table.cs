@@ -6,8 +6,6 @@ namespace crossql
 {
     public class Table
     {
-        public readonly IList<IConstraint> Constraints;
-        public readonly string Name;
         private readonly IDialect _dialect;
         private readonly bool _updateTable;
 
@@ -20,7 +18,9 @@ namespace crossql
             _updateTable = updateTable;
         }
 
-        public IList<Column> Columns { get; set; }
+        public IList<IConstraint> Constraints { get; }
+        public string Name { get; }
+        public IList<Column> Columns { get; }
 
         public Table CompositeKey(string key1, string key2, ClusterType clusterType = ClusterType.NonClustered)
         {
@@ -58,7 +58,7 @@ namespace crossql
                 }
 
                 // Sqlite can't added constraints after the table has already been created.
-                if (_dialect.GetType().Name != "SqliteDialiect")
+                if (_dialect.DatabaseType != DatabaseType.Sqlite)
                 {
                     foreach ( var constraint in Constraints )
                     {

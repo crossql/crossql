@@ -11,11 +11,13 @@ namespace crossql
 {
     public class WhereExpressionVisitor
     {
+        private readonly IDialect _dialect;
         private readonly StringBuilder _strings;
         public Dictionary<string, object> Parameters;
 
-        public WhereExpressionVisitor()
+        public WhereExpressionVisitor(IDialect dialect)
         {
+            _dialect = dialect;
             Parameters = new Dictionary<string, object>();
             _strings = new StringBuilder();
         }
@@ -265,7 +267,7 @@ namespace crossql
             //if (expression.Expression.NodeType.ToString() == "Parameter" || left == null)
             if (left == null)
             {
-                _strings.Append(string.Format("[{0}].[{1}]", tableName, fieldName));
+                _strings.Append(string.Format("{2}{0}{3}.{2}{1}{3}", tableName, fieldName,_dialect.OpenBrace,_dialect.CloseBrace));
                 _strings.Append(" ");
             }
             else
@@ -304,13 +306,11 @@ namespace crossql
                     }
                 }
             }
-            if ((memberExpression.Member as FieldInfo) != null)
+            if (memberExpression.Member is FieldInfo fi)
             {
-                var fieldInfo = memberExpression.Member as FieldInfo;
-                var constantExpression = memberExpression.Expression as ConstantExpression;
-                if (fieldInfo != null & constantExpression != null)
+                if (memberExpression.Expression is ConstantExpression constantExpression)
                 {
-                    return fieldInfo.GetValue(constantExpression.Value);
+                    return fi.GetValue(constantExpression.Value);
                 }
             }
 
@@ -402,16 +402,16 @@ namespace crossql
             }
         }
 
-        private static string GetMethodCallFormat(MethodCallExpression expression)
+        private string GetMethodCallFormat(MethodCallExpression expression)
         {
             switch (expression.Method.Name)
             {
                 case "EndsWith":
                 case "StartsWith":
                 case "Contains":
-                    return "[{0}].[{1}] LIKE @{2}";
+                    return $"{_dialect.OpenBrace}{{0}}{_dialect.CloseBrace}.{_dialect.OpenBrace}{{1}}{_dialect.CloseBrace} LIKE @{{2}}";
                 case "Equals":
-                    return "[{0}].[{1}] = @{2}";
+                    return $"{_dialect.OpenBrace}{{0}}{_dialect.CloseBrace}.{_dialect.OpenBrace}{{1}}{_dialect.CloseBrace} = @{{2}}";
                 default:
                     throw new ExpressionMethodCallNotSupportedException(expression);
             }

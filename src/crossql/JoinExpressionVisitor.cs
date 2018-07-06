@@ -8,10 +8,12 @@ namespace crossql
 {
     public class JoinExpressionVisitor
     {
+        private readonly IDialect _dialect;
         private readonly StringBuilder _strings;
 
-        public JoinExpressionVisitor()
+        public JoinExpressionVisitor(IDialect dialect)
         {
+            _dialect = dialect;
             _strings = new StringBuilder();
         }
 
@@ -70,7 +72,7 @@ namespace crossql
         {
             var tableName = BuildTableName(expression);
             var columnName = BuildColumnName(expression);
-            _strings.AppendFormat("[{0}].[{1}]", tableName, columnName);
+            _strings.AppendFormat("{2}{0}{3}.{2}{1}{3}", tableName, columnName,_dialect.OpenBrace,_dialect.CloseBrace);
         }
 
         private void VisitUnary(UnaryExpression expression) => Visit(expression.Operand);
