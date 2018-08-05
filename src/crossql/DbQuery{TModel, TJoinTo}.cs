@@ -81,7 +81,7 @@ namespace crossql
 
         public IDbQuery<TModel, TJoinTo> Where(Expression<Func<TModel, TJoinTo, bool>> expression)
         {
-            _whereExpressionVisitor = new WhereExpressionVisitor(_Parameters).Visit(expression);
+            _whereExpressionVisitor = new WhereExpressionVisitor(_Parameters, _DbProvider.Dialect).Visit(expression);
             _Parameters = _whereExpressionVisitor.Parameters;
 
             if (string.IsNullOrEmpty(_WhereClause))

@@ -22,8 +22,9 @@ namespace crossql
             _strings = new StringBuilder();
         }
 
-        public WhereExpressionVisitor (Dictionary<string, object> parameters)
+        public WhereExpressionVisitor (Dictionary<string, object> parameters, IDialect dialect)
         {
+            _dialect = dialect;
             Parameters = parameters;
             _strings = new StringBuilder();
         }
