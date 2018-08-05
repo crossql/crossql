@@ -86,7 +86,7 @@ END;";
         // Constraints
         public string PrimaryKeyConstraint => "PRIMARY KEY";
 
-        public string ForeignKeyConstraint => "CONSTRAINT FK_{0}_{1} FOREIGN KEY ({1}) REFERENCES {2} ({3})";
+        public string ForeignKeyConstraint => "CONSTRAINT FK_{0}_{1} FOREIGN KEY ({1}) REFERENCES {2}({3})";
 
         public string NullableConstraint => "NULL";
 
@@ -121,7 +121,7 @@ END;";
 
         public string DateTime => "datetime";
 
-        public string DateTimeOffset => "timestamp";
+        public string DateTimeOffset => "longtext";
 
         public string Decimal => "money";
 
@@ -137,7 +137,7 @@ END;";
 
         public string LimitedString => "nvarchar({0})";
 
-        public string MaxString => "nvarchar(max)";
+        public string MaxString => "longtext";
 
         public string Single => "real";
 

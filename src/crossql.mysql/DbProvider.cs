@@ -120,7 +120,6 @@ namespace crossql.mysql
                 if (typeof(TKey) == typeof(DateTime))
                 {
                     if (!DateTime.TryParse(result.ToString(), out _)) return (TKey) (object) DateTimeHelper.MinSqlValue;
-
                     return (TKey)result;
                 }
 
