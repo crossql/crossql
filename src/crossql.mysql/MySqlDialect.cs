@@ -27,16 +27,7 @@ namespace crossql.mysql
 
         public string InsertInto => "INSERT INTO `{0}` ({1}) VALUES ({2});";
 
-        // 0 == tablename
-        // 1 = set
-        // 2 = where
-        // 3 = fields
-        // 4 = parameters
-        public string CreateOrUpdate => @"UPDATE `{0}` SET {1} {2};
-IF @@ROWCOUNT = 0
-BEGIN;
-    INSERT INTO `{0}` ({3}) VALUES ({4});
-END;";
+        public string CreateOrUpdate => "REPLACE INTO `{0}` ({1}) VALUES ({2})";
 
         public string SelectFrom => "SELECT `{0}`.* FROM `{0}` {1}";
 
@@ -86,7 +77,7 @@ END;";
         // Constraints
         public string PrimaryKeyConstraint => "PRIMARY KEY";
 
-        public string ForeignKeyConstraint => "CONSTRAINT FK_{0}_{1} FOREIGN KEY ({1}) REFERENCES {2}({3})";
+        public string ForeignKeyConstraint => ", CONSTRAINT FK_{0}_{1} FOREIGN KEY ({1}) REFERENCES {2}({3})";
 
         public string NullableConstraint => "NULL";
 
@@ -147,7 +138,7 @@ END;";
 
         public string Truncate => "TRUNCATE TABLE {0}";
         
-        public string AutoIncrement => "IDENTITY({0},{1})";
+        public string AutoIncrement => "AUTO_INCREMENT";
         
         public string OpenBrace => "`";
         

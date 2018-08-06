@@ -68,7 +68,7 @@ namespace crossql.tests.Unit
                                  "[Id] uniqueidentifier PRIMARY KEY NONCLUSTERED NOT NULL," + _nl +
                                  "[CourseName] nvarchar(100) NOT NULL," + _nl +
                                  "[CourseDescription] nvarchar(max) ," + _nl +
-                                 "[CourseTeacher] uniqueidentifier CONSTRAINT FK_Courses_CourseTeacher FOREIGN KEY (CourseTeacher) REFERENCES Teachers (Id) ON DELETE NO ACTION ON UPDATE NO ACTION NOT NULL," + _nl +
+                                 "[CourseTeacher] uniqueidentifier NOT NULL CONSTRAINT FK_Courses_CourseTeacher FOREIGN KEY (CourseTeacher) REFERENCES Teachers (Id) ON DELETE NO ACTION ON UPDATE NO ACTION," + _nl +
                                  "[IsAvailable] bit NOT NULL DEFAULT(0));";
 
             var dialect = new SqlServerDialect();
@@ -103,7 +103,7 @@ namespace crossql.tests.Unit
                                  "[Id] blob PRIMARY KEY NOT NULL," + _nl +
                                  "[CourseName] text NOT NULL," + _nl +
                                  "[CourseDescription] text ," + _nl +
-                                 "[CourseTeacher] blob REFERENCES Teachers (Id) ON DELETE NO ACTION ON UPDATE NO ACTION NOT NULL," + _nl +
+                                 "[CourseTeacher] blob NOT NULL REFERENCES Teachers (Id) ON DELETE NO ACTION ON UPDATE NO ACTION," + _nl +
                                  "[IsAvailable] integer NOT NULL DEFAULT(0));";
 
             var dialect = new SqliteDialect();
