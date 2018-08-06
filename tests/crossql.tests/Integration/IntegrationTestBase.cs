@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Configuration;
 using System.Diagnostics;
-using System.Linq;
 using System.Threading.Tasks;
 using crossql.Config;
 using crossql.Migrations;
@@ -20,42 +19,50 @@ namespace crossql.tests.Integration
     {
         private static readonly string _testDbName = ConfigurationManager.AppSettings["databaseName"];
 
-        protected static IEnumerable<IDbProvider> DbProviders()
+        protected static IEnumerable<IDbProvider> DbProviders => new []
         {
-            return MySqlOnly();
-            return SqliteOnly().Concat(MsSqlOnly()).Concat(MySqlOnly());
+            //SqliteOnly,
+            //MsSqlOnly,
+            MySqlOnly
+        };
+
+        private static IDbProvider SqliteOnly
+        {
+            get{
+                var litecp = new sqlite.DbConnectionProvider($"{_testDbName}.sqlite3", SqliteSettings.Default);
+                return new SqliteDbProvider(litecp);
+            }
         }
 
-        public static IEnumerable<IDbProvider> SqliteOnly()
+        private static IDbProvider MsSqlOnly
         {
-            var litecp = new sqlite.DbConnectionProvider($"{_testDbName}.sqlite3",SqliteSettings.Default);
-            yield return new SqliteDbProvider(litecp);
+            get{
+                var sqlServerConnection = ConfigurationManager.ConnectionStrings["sqlServerConnection"];
+
+                var sqlDbConnectionProvider = new SqlDbConnectionProvider(
+                    sqlServerConnection.ConnectionString,
+                    sqlServerConnection.ProviderName);
+                return new SqlDbProvider(sqlDbConnectionProvider, _testDbName, SetConfig);
+            }
         }
 
-        public static IEnumerable<IDbProvider> MsSqlOnly()
+        private static IDbProvider MySqlOnly
         {
-            var sqlServerConnection = ConfigurationManager.ConnectionStrings["sqlServerConnection"];
+            get
+            {
+                var mysqlConnection = ConfigurationManager.ConnectionStrings["mySqlConnection"];
 
-            var sqlDbConnectionProvider = new SqlDbConnectionProvider(
-                sqlServerConnection.ConnectionString,
-                sqlServerConnection.ProviderName);            
-            yield return new SqlDbProvider(sqlDbConnectionProvider, _testDbName, SetConfig);
-        }
-
-        public static IEnumerable<IDbProvider> MySqlOnly()
-        {
-            var mysqlConnection = ConfigurationManager.ConnectionStrings["mySqlConnection"];
-
-            var mySqlDbConnectionProvider = new MySqlConnectionProvider(
-                mysqlConnection.ConnectionString,
-                mysqlConnection.ProviderName);            
-            yield return new MySqlDbProvider(mySqlDbConnectionProvider, _testDbName, SetConfig);
+                var mySqlDbConnectionProvider = new MySqlConnectionProvider(
+                    mysqlConnection.ConnectionString,
+                    mysqlConnection.ProviderName);
+                return new MySqlDbProvider(mySqlDbConnectionProvider, _testDbName, SetConfig);
+            }
         }
 
         [OneTimeSetUp]
         public async Task Setup()
         {
-            foreach (var dbProvider in DbProviders())
+            foreach (var dbProvider in DbProviders)
             {
                 Trace.WriteLine(TraceObjectGraphInfo(dbProvider));
                 var migrationRunner = new MigrationRunner(dbProvider);
