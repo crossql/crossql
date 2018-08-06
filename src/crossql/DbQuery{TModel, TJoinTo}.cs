@@ -22,11 +22,11 @@ namespace crossql
         // Called if its a ManyToMany join, we can grab the join conditions from out attributes, no need for expression
         public DbQuery(IDbProvider dbProvider, JoinType joinType, IDbMapper<TModel> dbMapper) : base(dbProvider, dbMapper)
         {
-            const string joinFormat = "[{0}].[Id] == [{1}].[{2}Id]";
+            const string joinFormat = "{3}{0}{4}.{3}Id{4} == {3}{1}{4}.{3}{2}Id{4}";
 
             _joinType = joinType;
             _joinTableName = typeof(TJoinTo).BuildTableName();
-            var joinExpression = string.Format(joinFormat, TableName, _joinTableName, TableName.Singularize());
+            var joinExpression = string.Format(joinFormat, _TableName, _joinTableName, _TableName.Singularize(),_DbProvider.Dialect.OpenBrace,_DbProvider.Dialect.CloseBrace);
             _joinExpression = BuildJoinExpression(joinType, joinExpression);
         }
 
@@ -35,7 +35,7 @@ namespace crossql
             if (_joinType == JoinType.ManyToMany)
                 throw new NotSupportedException("The join type you selected is not compatible with the On statement.");
 
-            _joinExpressionVisitor = new JoinExpressionVisitor().Visit(joinExpression);
+            _joinExpressionVisitor = new JoinExpressionVisitor(_DbProvider.Dialect).Visit(joinExpression);
             _joinExpression = BuildJoinExpression(_joinType, _joinExpressionVisitor.JoinExpression);
             return this;
         }
@@ -43,10 +43,10 @@ namespace crossql
         public IDbQuery<TModel, TJoinTo> OrderBy(Expression<Func<TModel, TJoinTo, object>> orderByExpression,
             OrderDirection direction)
         {
-            _orderByExpressionVisitor = new OrderByExpressionVisitor().Visit(orderByExpression);
+            _orderByExpressionVisitor = new OrderByExpressionVisitor(_DbProvider.Dialect).Visit(orderByExpression);
 
-            OrderByClause = string.Format(
-                DbProvider.Dialect.OrderBy,
+            _OrderByClause = string.Format(
+                _DbProvider.Dialect.OrderBy,
                 _orderByExpressionVisitor.OrderByExpression,
                 direction == OrderDirection.Ascending ? "ASC" : "DESC");
 
@@ -59,55 +59,55 @@ namespace crossql
             return this;
         }
 
-        public override string ToStringCount() => string.Format(DbProvider.Dialect.SelectCountFromJoin, TableName, _joinExpression, GetExtendedWhereClause()).Trim();
+        public override string ToStringCount() => string.Format(_DbProvider.Dialect.SelectCountFromJoin, _TableName, _joinExpression, GetExtendedWhereClause()).Trim();
 
-        public override string ToStringDelete() => string.Format(DbProvider.Dialect.DeleteFromJoin, TableName, _joinExpression, WhereClause);
+        public override string ToStringDelete() => string.Format(_DbProvider.Dialect.DeleteFromJoin, _TableName, _joinExpression, _WhereClause);
 
         public override Task Update(TModel model, Func<TModel, IDictionary<string, object>> mapToDbParameters)
         {
-            var dbFields = DbMapper.FieldNames
+            var dbFields = _DbMapper.FieldNames
                 .Where(field => field != "ID")
-                .Select(field => string.Format("[{0}] = @{0}", field))
+                .Select(field => string.Format("{1}{0}{2} = @{0}", field, _DbProvider.Dialect.OpenBrace,_DbProvider.Dialect.CloseBrace))
                 .ToList();
 
             var whereClause = GetExtendedWhereClause();
-            var commandText = string.Format(DbProvider.Dialect.UpdateJoin, TableName, string.Join(",", dbFields),
+            var commandText = string.Format(_DbProvider.Dialect.UpdateJoin, _TableName, string.Join(",", dbFields),
                 _joinExpression, whereClause);
-            var parameters = Parameters.Union(mapToDbParameters(model))
+            var parameters = _Parameters.Union(mapToDbParameters(model))
                 .ToDictionary(pair => pair.Key, pair => pair.Value);
 
-            return DbProvider.ExecuteNonQuery(commandText, parameters);
+            return _DbProvider.ExecuteNonQuery(commandText, parameters);
         }
 
         public IDbQuery<TModel, TJoinTo> Where(Expression<Func<TModel, TJoinTo, bool>> expression)
         {
-            _whereExpressionVisitor = new WhereExpressionVisitor(Parameters).Visit(expression);
-            Parameters = _whereExpressionVisitor.Parameters;
+            _whereExpressionVisitor = new WhereExpressionVisitor(_Parameters, _DbProvider.Dialect).Visit(expression);
+            _Parameters = _whereExpressionVisitor.Parameters;
 
-            if (string.IsNullOrEmpty(WhereClause))
-                WhereClause = string.Format(DbProvider.Dialect.Where, _whereExpressionVisitor.WhereExpression);
+            if (string.IsNullOrEmpty(_WhereClause))
+                _WhereClause = string.Format(_DbProvider.Dialect.Where, _whereExpressionVisitor.WhereExpression);
             else
-                WhereClause += " AND " + _whereExpressionVisitor.WhereExpression;
+                _WhereClause += " AND " + _whereExpressionVisitor.WhereExpression;
             return this;
         }
 
-        public override string ToString() => string.Format(DbProvider.Dialect.SelectFromJoin, TableName, _joinExpression, GetExtendedWhereClause()).Trim();
+        public override string ToString() => string.Format(_DbProvider.Dialect.SelectFromJoin, _TableName, _joinExpression, GetExtendedWhereClause()).Trim();
 
         private string BuildJoinExpression(JoinType joinType, string joinString)
         {
             if (joinType == JoinType.Inner)
-                return string.Format(DbProvider.Dialect.InnerJoin, _joinTableName, joinString);
+                return string.Format(_DbProvider.Dialect.InnerJoin, _joinTableName, joinString);
             if (joinType == JoinType.Left)
-                return string.Format(DbProvider.Dialect.LeftJoin, _joinTableName, joinString);
+                return string.Format(_DbProvider.Dialect.LeftJoin, _joinTableName, joinString);
 
             if (joinType == JoinType.ManyToMany)
             {
-                var names = new[] {TableName, _joinTableName};
+                var names = new[] {_TableName, _joinTableName};
                 Array.Sort(names, StringComparer.CurrentCulture);
                 var manyManyTableName = string.Join("_", names);
 
-                var join = string.Format(DbProvider.Dialect.ManyToManyJoin,
-                    TableName, "Id", manyManyTableName, TableName.Singularize() + "Id", _joinTableName,
+                var join = string.Format(_DbProvider.Dialect.ManyToManyJoin,
+                    _TableName, "Id", manyManyTableName, _TableName.Singularize() + "Id", _joinTableName,
                     _joinTableName.Singularize() + "Id");
                 return join;
             }

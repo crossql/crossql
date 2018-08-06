@@ -81,5 +81,9 @@ namespace crossql
         string OrderBy { get; }
         string Truncate { get; }
         string AutoIncrement { get; }
+        
+        // braces
+        string OpenBrace { get; }
+        string CloseBrace { get; }
     }
 }

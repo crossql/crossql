@@ -26,6 +26,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "files", "files", "{8E37ED08
 		src\Directory.Build.props = src\Directory.Build.props
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "crossql.mysql", "src\crossql.mysql\crossql.mysql.csproj", "{6DF9B6B2-D76D-44CE-92E2-E3082CC334CA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -48,6 +50,10 @@ Global
 		{267B23F4-E277-4A90-A4DD-2124F3394DB5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{267B23F4-E277-4A90-A4DD-2124F3394DB5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{267B23F4-E277-4A90-A4DD-2124F3394DB5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6DF9B6B2-D76D-44CE-92E2-E3082CC334CA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6DF9B6B2-D76D-44CE-92E2-E3082CC334CA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6DF9B6B2-D76D-44CE-92E2-E3082CC334CA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6DF9B6B2-D76D-44CE-92E2-E3082CC334CA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -57,6 +63,7 @@ Global
 		{8B67CA72-AC66-42F1-B32F-C5AB1DB7A840} = {474BE14A-235D-48A1-A3AD-FD6FF5D8A4A9}
 		{099E4343-DF84-4D6F-862D-A28B7A2A7082} = {474BE14A-235D-48A1-A3AD-FD6FF5D8A4A9}
 		{267B23F4-E277-4A90-A4DD-2124F3394DB5} = {3FC6BDE5-5841-4061-812B-3BB58E825E85}
+		{6DF9B6B2-D76D-44CE-92E2-E3082CC334CA} = {474BE14A-235D-48A1-A3AD-FD6FF5D8A4A9}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {C1110309-72C9-4E34-A297-3F655DF9B12C}

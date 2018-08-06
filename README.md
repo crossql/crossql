@@ -18,15 +18,16 @@ A Portable, cross-platform, light weight, opinionated ORM designed to work acros
 |          | crossql.core |      | [![MyGet](https://img.shields.io/myget/crossql/vpre/crossql.core.svg?style=flat-square&label=myget)](https://www.myget.org/feed/crossql/package/nuget/crossql.core)
 | SQLite   | crossql.sqlite |      | [![MyGet](https://img.shields.io/myget/crossql/vpre/crossql.sqlite.svg?style=flat-square&label=myget)](https://www.myget.org/feed/crossql/package/nuget/crossql.sqlite)
 | MS Sql Server   | crossql.mssqlserver |      | [![MyGet](https://img.shields.io/myget/crossql/vpre/crossql.mssqlserver.svg?style=flat-square&label=myget)](https://www.myget.org/feed/crossql/package/nuget/crossql.mssqlserver)
+| MySQL   | crossql.mysql |      | [![MyGet](https://img.shields.io/myget/crossql/vpre/crossql.mysql.svg?style=flat-square&label=myget)](https://www.myget.org/feed/crossql/package/nuget/crossql.mysql)
 
 
 ### Current Support ###
 
 *note: we take pull requests if you'd like to support more ;)* 
 
-| Platform      | Sqlite                  | SQL Server (>= 2012)     | PostgreSQL               | MySQL                   |
+| Platform      | Sqlite                  | SQL Server (>= 2012)    | MySQL                    | PostgreSQL                   |
 | ------------- | ----------------------: | ----------------------: | -----------------------: | ----------------------: |
-| Windows       | <ul><li> [x] </li></ul> | <ul><li> [x] </li></ul> | <ul><li> [ ] </li></ul>  | <ul><li> [ ] </li></ul> |
+| Windows       | <ul><li> [x] </li></ul> | <ul><li> [x] </li></ul> | <ul><li> [x] </li></ul>  | <ul><li> [ ] </li></ul> |
 | Android       | <ul><li> [x] </li></ul> |                         |                          |                         |
 | iOS           | <ul><li> [x] </li></ul> |                         |                          |                         |
 

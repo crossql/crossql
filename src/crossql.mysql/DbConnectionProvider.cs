@@ -1,10 +1,8 @@
-﻿using System;
-using System.Data;
-using System.Data.Common;
-using System.Data.SqlClient;
+﻿using System.Data;
 using System.Threading.Tasks;
+using MySql.Data.MySqlClient;
 
-namespace crossql.mssqlserver
+namespace crossql.mysql
 {
     public class DbConnectionProvider : IDbConnectionProvider
     {
@@ -19,7 +17,7 @@ namespace crossql.mssqlserver
 
         public async Task<IDbConnection> GetOpenConnection()
         {
-            var connection = new SqlConnection {ConnectionString = _connectionString};
+            var connection = new MySqlConnection {ConnectionString = _connectionString};
 
             await  connection.OpenAsync().ConfigureAwait(false);
 

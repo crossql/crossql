@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq.Expressions;
+using crossql.mssqlserver;
 using crossql.tests.Helpers.Models;
 using NUnit.Framework;
 
@@ -38,6 +39,6 @@ namespace crossql.tests.Unit
             Assert.AreEqual(expectedString, actualString);
         }
 
-        private static JoinExpressionVisitor JoinExpression<TModel, TJoinTo>(Expression<Func<TModel, TJoinTo, object>> joinExpression) where TModel : class, new() => new JoinExpressionVisitor().Visit(joinExpression);
+        private static JoinExpressionVisitor JoinExpression<TModel, TJoinTo>(Expression<Func<TModel, TJoinTo, object>> joinExpression) where TModel : class, new() => new JoinExpressionVisitor(new SqlServerDialect()).Visit(joinExpression);
     }
 }

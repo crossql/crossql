@@ -12,6 +12,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\crossql.mssqlserver\crossql.mssqlserver.csproj" />
+    <ProjectReference Include="..\..\src\crossql.mysql\crossql.mysql.csproj" />
     <ProjectReference Include="..\..\src\crossql.sqlite\crossql.sqlite.csproj" />
     <ProjectReference Include="..\..\src\crossql\crossql.csproj" />
   </ItemGroup>

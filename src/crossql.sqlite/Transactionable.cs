@@ -23,7 +23,7 @@ namespace crossql.sqlite
 
             var parameters = "@" + string.Join(",@", fieldNameList);
             var fields = string.Join(",", fieldNameList);
-            var commandText = string.Format(Dialect.CreateOrUpdate, tableName, fields, parameters);
+            var commandText = string.Format(_Dialect.CreateOrUpdate, tableName, fields, parameters);
 
             await ExecuteNonQuery(commandText, commandParams).ConfigureAwait(false);
             await UpdateManyToManyRelationsAsync(model, tableName, dbMapper).ConfigureAwait(false);
@@ -31,9 +31,9 @@ namespace crossql.sqlite
 
         public override async Task ExecuteNonQuery(string commandText, IDictionary<string, object> parameters)
         {
-            using (var command = (SqliteCommand) Connection.CreateCommand())
+            using (var command = (SqliteCommand) _Connection.CreateCommand())
             {
-                if (Transaction != null) command.Transaction = (SqliteTransaction) Transaction;
+                if (_Transaction != null) command.Transaction = (SqliteTransaction) _Transaction;
 
                 command.CommandType = CommandType.Text;
                 command.CommandText = commandText;
@@ -48,7 +48,7 @@ namespace crossql.sqlite
                 }
                 catch
                 {
-                    Transaction?.Rollback();
+                    _Transaction?.Rollback();
                     throw;
                 }
             }

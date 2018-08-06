@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Configuration;
 using System.Diagnostics;
-using System.Linq;
 using System.Threading.Tasks;
 using crossql.Config;
 using crossql.Migrations;
@@ -9,47 +8,50 @@ using crossql.sqlite;
 using crossql.tests.Helpers.Migrations;
 using crossql.tests.Helpers.Models;
 using NUnit.Framework;
-using SqlDbConnectionProvider = crossql.mssqlserver.DbConnectionProvider;
-using SqlDbProvider = crossql.mssqlserver.DbProvider;
+using SqlServerDbConnectionProvider = crossql.mssqlserver.DbConnectionProvider;
+using MySqlDbConnectionProvider = crossql.mysql.DbConnectionProvider;
+using SqliteDbConnectionProvider = crossql.sqlite.DbConnectionProvider;
+using SqlServerDbProvider = crossql.mssqlserver.DbProvider;
 using SqliteDbProvider = crossql.sqlite.DbProvider;
+using MySqlDbProvider = crossql.mysql.DbProvider;
+
 namespace crossql.tests.Integration
 {
     public abstract class IntegrationTestBase
     {
         private static readonly string _testDbName = ConfigurationManager.AppSettings["databaseName"];
+        private static readonly ConnectionStringSettings _mySqlSettings = ConfigurationManager.ConnectionStrings["mySqlConnection"];
+        private static readonly ConnectionStringSettings _sqlServerSettings = ConfigurationManager.ConnectionStrings["sqlServerConnection"];
 
-        public static IEnumerable<IDbProvider> DbProviders()
+        protected static IEnumerable<IDbProvider> DbProviders => new[]
         {
-            return SqliteOnly().Concat(MsSqlOnly());
-        }
+            SqliteOnly,
+            MsSqlOnly,
+            MySqlOnly
+        };
 
-        public static IEnumerable<IDbProvider> SqliteOnly()
-        {
-            var litecp = new sqlite.DbConnectionProvider($"{_testDbName}.sqlite3",SqliteSettings.Default);
-            yield return new SqliteDbProvider(litecp);
-        }
+        private static IDbProvider SqliteOnly => new SqliteDbProvider(new SqliteDbConnectionProvider(
+            $"{_testDbName}.sqlite3", SqliteSettings.Default));
 
-        public static IEnumerable<IDbProvider> MsSqlOnly()
-        {
-            var sqlServerConnection = ConfigurationManager.ConnectionStrings["databaseConnection"];
+        private static IDbProvider MsSqlOnly => new SqlServerDbProvider(
+            new SqlServerDbConnectionProvider(_sqlServerSettings.ConnectionString, _sqlServerSettings.ProviderName),
+            _testDbName, SetConfig);
 
-            var sqlDbConnectionProvider = new SqlDbConnectionProvider(
-                sqlServerConnection.ConnectionString,
-                sqlServerConnection.ProviderName);            
-            yield return new SqlDbProvider(sqlDbConnectionProvider, _testDbName, SetConfig);
-        }
+        private static IDbProvider MySqlOnly => new MySqlDbProvider(
+            new MySqlDbConnectionProvider(_mySqlSettings.ConnectionString, _mySqlSettings.ProviderName), _testDbName,
+            SetConfig);
 
         [OneTimeSetUp]
         public async Task Setup()
         {
-            foreach (var dbProvider in DbProviders())
+            foreach (var dbProvider in DbProviders)
             {
                 Trace.WriteLine(TraceObjectGraphInfo(dbProvider));
                 var migrationRunner = new MigrationRunner(dbProvider);
 
                 // drop the database before running the tests again
                 await migrationRunner.DropDatabase();
-                
+
                 await migrationRunner.RunAll(SystemRole.Server, new List<IDbMigration>
                 {
                     new Migration001(),
@@ -60,11 +62,11 @@ namespace crossql.tests.Integration
             }
         }
 
-        protected string TraceObjectGraphInfo(IDbProvider dbProvider)
+        protected static string TraceObjectGraphInfo(IDbProvider dbProvider)
         {
             var dbProviderFriendlyName = dbProvider.GetType().ToString()
-                                                   .Replace("crossql.", "'")
-                                                   .Replace(".", "' ");
+                .Replace("crossql.", "'")
+                .Replace(".", "' ");
 
             return "Tested against the " + dbProviderFriendlyName;
         }
