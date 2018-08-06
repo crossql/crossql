@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using crossql.Constraints;
 using crossql.Exceptions;
 using ForeignKeyConstraint = crossql.Constraints.ForeignKeyConstraint;
@@ -12,7 +11,6 @@ namespace crossql
     {
         public static IList<KeyValuePair<Type, string>> CustomTypes = new List<KeyValuePair<Type, string>>();
         public readonly IList<IConstraint> Constraints;
-        private readonly IList<IConstraint> _firstConstraints;
         public readonly string Name;
         public readonly int Precision;
         public Type Type;
@@ -23,7 +21,6 @@ namespace crossql
         public Column(IDialect dialect, string name, Type type, string tableName, int precision)
         {
             Constraints = new List<IConstraint>();
-            _firstConstraints = new List<IConstraint>();
             Name = name;
             Precision = precision;
             Type = type;
@@ -58,7 +55,7 @@ namespace crossql
 
         public Column Clustered()
         {
-            _firstConstraints.Add(new ClusteredConstraint(_dialect));
+            Constraints.Insert(1, new ClusteredConstraint(_dialect));
             return this;
         }
 
@@ -84,32 +81,32 @@ namespace crossql
 
         public Column NonClustered()
         {
-            _firstConstraints.Add(new NonClusteredConstraint(_dialect));
+            Constraints.Insert(0, new NonClusteredConstraint(_dialect));
             return this;
         }
 
         public Column NotNullable()
         {
-            _firstConstraints.Add(new NotNullableConstraint(_dialect));
+            Constraints.Insert(0, new NotNullableConstraint(_dialect));
             return this;
         }
 
         public Column NotNullable<T>(T defaultValue)
         {
-            _firstConstraints.Add(new NotNullableConstraint(_dialect));
-            _firstConstraints.Add(new DefaultConstraint<T>(_dialect, defaultValue));
+            Constraints.Insert(0, new NotNullableConstraint(_dialect));
+            Constraints.Insert(0, new DefaultConstraint<T>(_dialect, defaultValue));
             return this;
         }
 
         public Column Nullable()
         {
-            _firstConstraints.Add(new NullableConstraint(_dialect));
+            Constraints.Insert(0, new NullableConstraint(_dialect));
             return this;
         }
 
         public Column PrimaryKey()
         {
-            _firstConstraints.Add(new PrimaryKeyConstraint(_dialect));
+            Constraints.Insert(0, new PrimaryKeyConstraint(_dialect));
             return this;
         }
 
@@ -117,7 +114,7 @@ namespace crossql
         {
             return Environment.NewLine +
                    string.Format(_dialect.CreateColumn, Name, GetDataType(Type, Precision),
-                       string.Join(" ", _firstConstraints.Union(Constraints)));
+                       string.Join(" ", Constraints));
         }
 
         public Column Unique()

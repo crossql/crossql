@@ -62,14 +62,14 @@ namespace crossql.tests.Unit
         {
             // Setup
             string expectedDDL = "CREATE TABLE [Teachers] (" + _nl +
-                                 "[Id] uniqueidentifier PRIMARY KEY NONCLUSTERED NOT NULL," + _nl +
+                                 "[Id] uniqueidentifier NOT NULL NONCLUSTERED PRIMARY KEY," + _nl +
                                  "[TeacherName] nvarchar(100) NOT NULL);" + _nl +
                                  "CREATE TABLE [Courses] (" + _nl +
-                                 "[Id] uniqueidentifier PRIMARY KEY NONCLUSTERED NOT NULL," + _nl +
+                                 "[Id] uniqueidentifier NOT NULL NONCLUSTERED PRIMARY KEY," + _nl +
                                  "[CourseName] nvarchar(100) NOT NULL," + _nl +
                                  "[CourseDescription] nvarchar(max) ," + _nl +
                                  "[CourseTeacher] uniqueidentifier NOT NULL CONSTRAINT FK_Courses_CourseTeacher FOREIGN KEY (CourseTeacher) REFERENCES Teachers (Id) ON DELETE NO ACTION ON UPDATE NO ACTION," + _nl +
-                                 "[IsAvailable] bit NOT NULL DEFAULT(0));";
+                                 "[IsAvailable] bit DEFAULT(0) NOT NULL);";
 
             var dialect = new SqlServerDialect();
             var database = new Database("MyDatabase", dialect);
@@ -97,14 +97,14 @@ namespace crossql.tests.Unit
         {
             // Setup
             string expectedDDL = "CREATE TABLE [Teachers] (" + _nl +
-                                 "[Id] blob PRIMARY KEY NOT NULL," + _nl +
+                                 "[Id] blob NOT NULL PRIMARY KEY," + _nl +
                                  "[TeacherName] text NOT NULL);" + _nl +
                                  "CREATE TABLE [Courses] (" + _nl +
-                                 "[Id] blob PRIMARY KEY NOT NULL," + _nl +
+                                 "[Id] blob NOT NULL PRIMARY KEY," + _nl +
                                  "[CourseName] text NOT NULL," + _nl +
                                  "[CourseDescription] text ," + _nl +
                                  "[CourseTeacher] blob NOT NULL REFERENCES Teachers (Id) ON DELETE NO ACTION ON UPDATE NO ACTION," + _nl +
-                                 "[IsAvailable] integer NOT NULL DEFAULT(0));";
+                                 "[IsAvailable] integer DEFAULT(0) NOT NULL);";
 
             var dialect = new SqliteDialect();
             var database = new Database("MyDatabase", dialect);
