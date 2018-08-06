@@ -148,9 +148,9 @@ namespace crossql.Migrations
             IDbProvider dbProvider)
         {
             var failedStep = MigrationStep.Unknown;
+            var database = new Database(dbProvider.DatabaseName, dbProvider.Dialect);
             try
             {
-                var database = new Database(dbProvider.DatabaseName, dbProvider.Dialect);
                 switch (migrationStep)
                 {
                     case MigrationStep.Setup:
@@ -197,10 +197,9 @@ namespace crossql.Migrations
                 if (!string.IsNullOrWhiteSpace(dbCommand))
                     await _dbProvider.ExecuteNonQuery(dbCommand);
             }
-            catch (Exception ex)
+            catch (Exception exception)
             {
-                var database = new Database(dbProvider.DatabaseName, dbProvider.Dialect);
-                await migration.MigrationFailed(database, dbProvider, failedStep, ex);
+                await migration.MigrationFailed(database, dbProvider, failedStep, exception);
                 throw;
             }
         }

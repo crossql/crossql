@@ -137,10 +137,5 @@ namespace crossql.tests.Helpers.Migrations
                 await transaction.Create(FixtureBase.UpdateBaseFields(csLewis));
             });
         }
-
-        public override Task MigrationFailed(Database database, IDbProvider provider, MigrationStep migrationThatFailed, Exception exception)
-        {
-            return base.MigrationFailed(database, provider, migrationThatFailed, exception);
-        }
     }
 }
