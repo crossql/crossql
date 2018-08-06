@@ -23,14 +23,21 @@ namespace crossql.mysql
 
         public override async Task CreateOrUpdate<TModel>(TModel model, IDbMapper<TModel> dbMapper)
         {
+            var modelType = typeof(TModel);
             var tableName = typeof(TModel).BuildTableName();
             var fieldNameList = dbMapper.FieldNames;
             var commandParams = dbMapper.BuildDbParametersFrom(model);
 
-            var parameters = "@" + string.Join(",@", fieldNameList);
-            var fields = string.Join(",", fieldNameList);
-            var commandText = string.Format(_Dialect.CreateOrUpdate, tableName, fields, parameters);
+            var insertParams = "@" + string.Join(",@", fieldNameList);
+            var insertFields = string.Join(",", fieldNameList);
+            var updateFields = string.Join(",", fieldNameList.Select(field => string.Format("`{0}` = @{0}", field)).ToList());
+            var whereClause = string.Format(_Dialect.Where, string.Format("{0} = @{0}", modelType.GetPrimaryKeyName()));
 
+            var commandText = string.Format(_Dialect.CreateOrUpdate,
+                tableName,
+                insertFields,
+                insertParams,
+                updateFields);
             await ExecuteNonQuery(commandText, commandParams).ConfigureAwait(false);
             await UpdateManyToManyRelationsAsync(model, tableName, dbMapper).ConfigureAwait(false);
         }

@@ -27,7 +27,7 @@ namespace crossql.mysql
 
         public string InsertInto => "INSERT INTO `{0}` ({1}) VALUES ({2});";
 
-        public string CreateOrUpdate => "REPLACE INTO `{0}` ({1}) VALUES ({2})";
+        public string CreateOrUpdate => @"INSERT INTO `{0}` ({1}) VALUES ({2}) ON DUPLICATE KEY UPDATE {3}";
 
         public string SelectFrom => "SELECT `{0}`.* FROM `{0}` {1}";
 
@@ -63,9 +63,9 @@ namespace crossql.mysql
 
         public string JoinParameters => "@{0}, @{1}";
 
-        public string InnerJoin => "INNER JOIN `{0}` ON `{1}`";
+        public string InnerJoin => "INNER JOIN `{0}` ON {1`";
 
-        public string LeftJoin => "LEFT OUTER JOIN `{0}` ON `{1}`";
+        public string LeftJoin => "LEFT OUTER JOIN `{0}` ON {1}";
 
         [Obsolete]
         public string OldManyToManyJoin => "INNER JOIN `{0}` ON `{0}`.`{1}Id` = `{2}`.`Id` INNER JOIN `{3}` ON `{0}`.`{4}Id` = `{3}`.`Id`";
