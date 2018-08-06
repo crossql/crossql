@@ -25,9 +25,9 @@ A Portable, cross-platform, light weight, opinionated ORM designed to work acros
 
 *note: we take pull requests if you'd like to support more ;)* 
 
-| Platform      | Sqlite                  | SQL Server (>= 2012)     | PostgreSQL               | MySQL                   |
+| Platform      | Sqlite                  | SQL Server (>= 2012)    | MySQL                    | PostgreSQL                   |
 | ------------- | ----------------------: | ----------------------: | -----------------------: | ----------------------: |
-| Windows       | <ul><li> [x] </li></ul> | <ul><li> [x] </li></ul> | <ul><li> [ ] </li></ul>  | <ul><li> [ ] </li></ul> |
+| Windows       | <ul><li> [x] </li></ul> | <ul><li> [x] </li></ul> | <ul><li> [x] </li></ul>  | <ul><li> [ ] </li></ul> |
 | Android       | <ul><li> [x] </li></ul> |                         |                          |                         |
 | iOS           | <ul><li> [x] </li></ul> |                         |                          |                         |
 
