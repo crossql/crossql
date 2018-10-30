@@ -138,19 +138,16 @@ namespace crossql
         public override string ToString()
         {
             // todo: check to see if the query is already cached. If so, short circuit this call and reuse it,
-            // note: still have to extract the where parameters
+            // note: still have to extract the where parameters, probably needs a light weight version of the WhereExpressionVisitor
             
             // join
-            var joinVisitor = new JoinExpressionVisitor(DbProvider.Dialect);
-            var joinClause = GenerateJoinClauseRecursive(this, joinVisitor);
+            var joinClause = GenerateJoinClauseRecursive(this, new JoinExpressionVisitor(DbProvider.Dialect));
             
             // where
-            
-            // todo: if the query is already in the cache, we just have to visit for parameter values (WhereParameters)
             var whereClause = GenerateWhereClause();
             
             // skip take
-            var skipTakeClause = GenerateSkipTake();
+            var skipTakeClause = GenerateSkipTakeClause();
 
             // order by
             var orderByClause = GenerateOrderByClause();
@@ -169,17 +166,17 @@ namespace crossql
         private static string GenerateFinalClause(string joinClause, string whereClause, string orderByClause, string skipTakeClause) 
             => string.Join("\n", joinClause, whereClause, orderByClause, skipTakeClause);
 
-        private static string GenerateJoinClauseRecursive(DbQuery<TModel> context, JoinExpressionVisitor visitor, string joinClause = "")
+        private static string GenerateJoinClauseRecursive(DbQuery<TModel> context, JoinExpressionVisitor joinVisitor, string joinClause = "")
         {
             if (!(context._context is null))
             {
-                joinClause += GenerateJoinClauseRecursive(context._context, visitor, joinClause);
+                joinClause += GenerateJoinClauseRecursive(context._context, joinVisitor, joinClause);
             }
             
             if (!(context._joinExpression is null))
             {
-                visitor.Visit(context._joinExpression);
-                joinClause += $"\n{BuildJoinExpression(JoinType.Inner, visitor.JoinExpression, context)}";
+                joinVisitor.Visit(context._joinExpression);
+                joinClause += $"\n{BuildJoinExpression(JoinType.Inner, joinVisitor.JoinExpression, context)}";
             }
 
             return joinClause;
@@ -199,8 +196,8 @@ namespace crossql
         
         private string GenerateWhereClause()
         {
-            if (!WhereExpressions.Any()) return string.Empty;
             var whereClause = string.Empty;
+            if (!WhereExpressions.Any()) return whereClause;
 
             for (var index = 0; index < WhereExpressions.Count; index++)
             {
@@ -218,7 +215,7 @@ namespace crossql
             return whereClause;
         }
 
-        private string GenerateSkipTake() => _hasSkipTake 
+        private string GenerateSkipTakeClause() => _hasSkipTake 
             ? string.Format(DbProvider.Dialect.SkipTake, _skip, _take) 
             : string.Empty;
         
