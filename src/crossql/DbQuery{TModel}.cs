@@ -167,7 +167,7 @@ namespace crossql
 
         // Private Methods
         private static string GenerateFinalClause(string joinClause, string whereClause, string orderByClause, string skipTakeClause) 
-            =>  string.Join("\n", joinClause, whereClause, orderByClause, skipTakeClause);
+            => string.Join("\n", joinClause, whereClause, orderByClause, skipTakeClause);
 
         private static string GenerateJoinClauseRecursive(DbQuery<TModel> context, JoinExpressionVisitor visitor, string joinClause = "")
         {
