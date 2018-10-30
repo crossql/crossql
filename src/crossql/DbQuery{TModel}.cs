@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
@@ -121,9 +120,6 @@ namespace crossql
         public override string ToString()
         {
             // join
-            if(DbProvider is null)
-                Debugger.Break();
-            
             var visitor = new JoinExpressionVisitor(DbProvider.Dialect);
             var joinClause = GenerateJoinClause(this, visitor);
             
