@@ -12,9 +12,10 @@ namespace crossql
     public class DbQuery<TModel> : IDbQuery<TModel>
         where TModel : class, new()
     {
+        // keep this around for posterity. it's the old join format
         // const string _joinFormat = "{3}{0}{4}.{3}Id{4} == {3}{1}{4}.{3}{2}Id{4}";
         
-        
+        // read only backing fields
         private readonly Expression _joinExpression;
         private readonly string _joinTableName;
         private readonly IDbProvider _dbProvider;
@@ -23,6 +24,7 @@ namespace crossql
         private readonly DbQuery<TModel> _context;
         private readonly IList<Expression<Func<TModel, bool>>> _whereExpressions = new List<Expression<Func<TModel, bool>>>();
 
+        // backing fields
         private Dictionary<string, object> _whereParameters;
         private Expression<Func<TModel, object>> _orderByExpression;
         private bool _orderBySet;
@@ -31,12 +33,20 @@ namespace crossql
         private int _take;
         private bool _hasSkipTake;
 
+        // Properties
         private Dictionary<string, object> WhereParameters => _whereParameters ?? _context?.WhereParameters;
         private Expression<Func<TModel, object>> OrderByExpression => _orderByExpression ?? _context?.OrderByExpression;
         private IList<Expression<Func<TModel, bool>>> WhereExpressions => _whereExpressions ?? _context?.WhereExpressions ;
         private IDbProvider DbProvider => _dbProvider ?? _context?.DbProvider;
         private string TableName => _tableName ?? _context?.TableName;
         
+        // ReSharper disable once InvalidXmlDocComment
+        /// <summary>
+        /// Creates a new query by which to run off of the <see cref="IDbProvider"/>. Queries are lazily evaluated once you call one of the execution methods.
+        /// <see cref="Count"/>, <see cref="Select"/>, <see cref="Update"/>, or any one of the <see cref="ToString"/> methods.
+        /// </summary>
+        /// <param name="dbProvider">platform specific db provider</param>
+        /// <param name="dbMapper">platform specific db mapper</param>
         public DbQuery(IDbProvider dbProvider, IDbMapper<TModel> dbMapper)
         {
             _dbMapper = dbMapper;
@@ -64,6 +74,28 @@ namespace crossql
         public Task<int> Count() 
             => DbProvider.ExecuteScalar<int>(ToStringCount(), _whereParameters);
 
+        public Task<IEnumerable<TModel>> Select() => Select(_dbMapper.BuildListFrom);
+        
+        public Task<IEnumerable<TResult>> Select<TResult>(Func<IDataReader, IEnumerable<TResult>> mapperFunc) 
+            => DbProvider.ExecuteReader(ToString(), _whereParameters, mapperFunc);
+
+        public Task Update(TModel model) => Update(model, _dbMapper.BuildDbParametersFrom);
+
+        public virtual Task Update(TModel model, Func<TModel, IDictionary<string, object>> mapToDbParameters)
+        {
+            var dbFields = _dbMapper.FieldNames
+                .Where(field => field != "ID")
+                .Select(field => string.Format("{1}{0}{2} = @{0}", field, DbProvider.Dialect.OpenBrace,DbProvider.Dialect.CloseBrace)).ToList();
+
+            var whereClause = GenerateWhereClause();
+            var commandText = string.Format(DbProvider.Dialect.Update, _tableName, string.Join(",", dbFields),
+                whereClause);
+            var parameters = _whereParameters.Union(mapToDbParameters(model))
+                .ToDictionary(pair => pair.Key, pair => pair.Value);
+
+            return DbProvider.ExecuteNonQuery(commandText, parameters);
+        }
+        
         public Task Delete() 
             => DbProvider.ExecuteNonQuery(ToStringDelete(), _whereParameters);
 
@@ -93,30 +125,9 @@ namespace crossql
             return this;
         }
 
-        public Task<IEnumerable<TResult>> Select<TResult>(Func<IDataReader, IEnumerable<TResult>> mapperFunc) 
-            => DbProvider.ExecuteReader(ToString(), _whereParameters, mapperFunc);
+        public Task Truncate() => DbProvider.ExecuteNonQuery(ToStringTruncate());
 
-        public Task<IEnumerable<TModel>> Select() => Select(_dbMapper.BuildListFrom);
-
-        public Task Update(TModel model) => Update(model, _dbMapper.BuildDbParametersFrom);
-
-        public virtual Task Update(TModel model, Func<TModel, IDictionary<string, object>> mapToDbParameters)
-        {
-            var dbFields = _dbMapper.FieldNames
-                .Where(field => field != "ID")
-                .Select(field => string.Format("{1}{0}{2} = @{0}", field, DbProvider.Dialect.OpenBrace,DbProvider.Dialect.CloseBrace)).ToList();
-
-            var whereClause = GenerateWhereClause();
-            var commandText = string.Format(DbProvider.Dialect.Update, _tableName, string.Join(",", dbFields),
-                whereClause);
-            var parameters = _whereParameters.Union(mapToDbParameters(model))
-                .ToDictionary(pair => pair.Key, pair => pair.Value);
-
-            return DbProvider.ExecuteNonQuery(commandText, parameters);
-        }
-
-        public void Truncate() => DbProvider.ExecuteNonQuery(ToStringTruncate());
-
+        // ToString methods do the evaluation
         public override string ToString()
         {
             // join
@@ -142,6 +153,7 @@ namespace crossql
 
         public string ToStringTruncate() => string.Format(DbProvider.Dialect.Truncate, _tableName);
 
+        // Private methods below here
         private static string GenerateFinalClause(string joinClause, string whereClause, string orderByClause, string skipTakeClause) 
             =>  string.Join("\n", joinClause, whereClause, orderByClause, skipTakeClause);
 

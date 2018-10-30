@@ -12,7 +12,7 @@ namespace crossql.tests.Unit
         public void ShouldGenerateBasicJoinQuery(IDbProvider dbProvider)
         {
             // setup
-            const string expectedQuery = @"SELECT [Authors].* FROM [Authors] 
+            const string expectedQuery = @"SELECT [Authors].* FROM [Authors]
 INNER JOIN [Authors_Books] ON [Authors_Books].[AuthorId] = [Authors].[Id]";
 
             // execute
@@ -28,8 +28,8 @@ INNER JOIN [Authors_Books] ON [Authors_Books].[AuthorId] = [Authors].[Id]";
         public void ShouldGenerateSingleNestedJoinQuery(IDbProvider dbProvider)
         {
             // setup
-            const string expectedQuery = @"SELECT [Books].* FROM [Books] 
-INNER JOIN [Publishers] ON [Books].[Publisher] 
+            const string expectedQuery = @"SELECT [Books].* FROM [Books]
+INNER JOIN [Publishers] ON [Books].[Publisher]
 WHERE ( [Books].[IsDeleted] = @IsDeleted1 )";
             var authorId = new Guid("77F4D796-2485-455C-8477-A8A3FAFF873C");
 

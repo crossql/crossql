@@ -25,7 +25,7 @@ namespace crossql
         string ToStringCount();
         string ToStringDelete();
         string ToStringTruncate();
-        void Truncate();
+        Task Truncate();
         Task Update(TModel model);
         Task Update(TModel model, Func<TModel, IDictionary<string, object>> mapToDbParameters);
         IDbQuery<TModel> Where(Expression<Func<TModel, bool>> whereExpression);

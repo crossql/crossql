@@ -165,7 +165,7 @@ namespace crossql.tests.Integration
             // Assert Delete
             Assert.IsNull(actualDeletedGoose);
 
-            db.Query<GooseEntity>().Truncate();
+            await db.Query<GooseEntity>().Truncate();
 
             var emptyResults = await db.Query<GooseEntity>().Select();
             Assert.IsEmpty(emptyResults);

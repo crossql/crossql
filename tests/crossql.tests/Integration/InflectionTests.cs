@@ -53,7 +53,7 @@ namespace crossql.tests.Integration
 
             actualDeletedGoose.Should().BeNull();
             
-            db.Query<GooseEntity>().Truncate();
+            await db.Query<GooseEntity>().Truncate();
             
             var emptyResults = await db.Query<GooseEntity>().Select();
             emptyResults.Should().BeEmpty();
