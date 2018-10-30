@@ -15,15 +15,7 @@ namespace crossql
         private readonly StringBuilder _strings;
         public readonly Dictionary<string, object> Parameters;
 
-        public string WhereExpression
-        {
-            get
-            {
-                var result = "( " + _strings.ToString().Trim() + " )";
-                _strings.Clear();
-                return result;
-            }
-        }
+        public string WhereExpression => "( " + _strings.ToString().Trim() + " )";
 
         public WhereExpressionVisitor(IDialect dialect)
         {

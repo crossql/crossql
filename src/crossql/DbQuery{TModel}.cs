@@ -145,9 +145,9 @@ namespace crossql
             var joinClause = GenerateJoinClauseRecursive(this, joinVisitor);
             
             // where
-            var whereVisitor = new WhereExpressionVisitor(WhereParameters, DbProvider.Dialect);
+            
             // todo: if the query is already in the cache, we just have to visit for parameter values (WhereParameters)
-            var whereClause = GenerateWhereClause(whereVisitor);
+            var whereClause = GenerateWhereClause();
             
             // skip take
             var skipTakeClause = GenerateSkipTake();
@@ -196,11 +196,8 @@ namespace crossql
                 orderByExpressionVisitor.OrderByExpression, _orderBySortOrder);
 
         }
-
-        private string GenerateWhereClause() =>
-            GenerateWhereClause(new WhereExpressionVisitor(WhereParameters, DbProvider.Dialect));
         
-        private string GenerateWhereClause(WhereExpressionVisitor whereVisitor)
+        private string GenerateWhereClause()
         {
             if (!WhereExpressions.Any()) return string.Empty;
             var whereClause = string.Empty;
@@ -208,6 +205,7 @@ namespace crossql
             for (var index = 0; index < WhereExpressions.Count; index++)
             {
                 var expression = WhereExpressions[index];
+                var whereVisitor = new WhereExpressionVisitor(WhereParameters, DbProvider.Dialect);
                 whereVisitor.Visit(expression);
                 _whereParameters = whereVisitor.Parameters;
 
