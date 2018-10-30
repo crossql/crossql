@@ -40,13 +40,20 @@ namespace crossql
         private IDbProvider DbProvider => _dbProvider ?? _context?.DbProvider;
         private string TableName => _tableName ?? _context?.TableName;
         
-        // ReSharper disable once InvalidXmlDocComment
         /// <summary>
-        /// Creates a new query by which to run off of the <see cref="IDbProvider"/>. Queries are lazily evaluated once you call one of the execution methods.
-        /// <see cref="Count"/>, <see cref="Select"/>, <see cref="Update"/>, or any one of the <see cref="ToString"/> methods.
+        /// Creates a new query by which to run off of the <see cref="IDbProvider"/>. 
         /// </summary>
         /// <param name="dbProvider">platform specific db provider</param>
         /// <param name="dbMapper">platform specific db mapper</param>
+        /// <remarks>
+        /// Queries are lazily evaluated once you call one of the execution methods.
+        /// <see cref="Count"/>,
+        /// <see cref="Select"/>,
+        /// <see cref="Select{TResult}"/>,
+        /// <see cref="Update(TModel)"/>,
+        /// <see cref="Delete"/>,
+        /// <see cref="Truncate"/>,
+        /// or any one of the <see cref="ToString"/> methods.</remarks>
         public DbQuery(IDbProvider dbProvider, IDbMapper<TModel> dbMapper)
         {
             _dbMapper = dbMapper;
