@@ -13,7 +13,17 @@ namespace crossql
     {
         private readonly IDialect _dialect;
         private readonly StringBuilder _strings;
-        public Dictionary<string, object> Parameters;
+        public readonly Dictionary<string, object> Parameters;
+
+        public string WhereExpression
+        {
+            get
+            {
+                var result = "( " + _strings.ToString().Trim() + " )";
+                _strings.Clear();
+                return result;
+            }
+        }
 
         public WhereExpressionVisitor(IDialect dialect)
         {
@@ -28,8 +38,6 @@ namespace crossql
             Parameters = parameters;
             _strings = new StringBuilder();
         }
-
-        public string WhereExpression => "( " + _strings.ToString().Trim() + " )";
 
         public WhereExpressionVisitor Visit(Expression expression)
         {

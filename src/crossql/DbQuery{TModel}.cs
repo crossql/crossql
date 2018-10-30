@@ -130,7 +130,7 @@ namespace crossql
 
         public IDbQuery<TModel> Where(Expression<Func<TModel, bool>> expression)
         {
-            _whereExpressions.Add(expression);
+            WhereExpressions.Add(expression);
             return this;
         }
 
@@ -204,6 +204,8 @@ namespace crossql
         {
             if (!WhereExpressions.Any()) return string.Empty;
             var whereClause = string.Empty;
+
+            var count = WhereExpressions.Count;
             
             for (var index = 0; index < WhereExpressions.Count; index++)
             {
@@ -214,11 +216,9 @@ namespace crossql
                 if (string.IsNullOrEmpty(whereClause))
                     whereClause = string.Format(DbProvider.Dialect.Where, whereVisitor.WhereExpression);
                 else
-                    whereClause += " AND " + whereVisitor.WhereExpression;
+                    whereClause += $" AND {whereVisitor.WhereExpression}";
             }
             
-            WhereExpressions.Clear();
-            WhereParameters.Clear();
             return whereClause;
         }
 
