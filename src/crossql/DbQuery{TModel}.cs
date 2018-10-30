@@ -205,8 +205,6 @@ namespace crossql
             if (!WhereExpressions.Any()) return string.Empty;
             var whereClause = string.Empty;
 
-            var count = WhereExpressions.Count;
-            
             for (var index = 0; index < WhereExpressions.Count; index++)
             {
                 var expression = WhereExpressions[index];
