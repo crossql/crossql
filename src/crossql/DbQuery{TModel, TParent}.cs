@@ -8,7 +8,6 @@ namespace crossql
         where TModel : class, new()
         where TParent : class, new()
     {
-
         internal DbQuery(DbQuery<TModel> context, string joinTableName, Expression expression) 
             : base(context, joinTableName, expression) { }
 

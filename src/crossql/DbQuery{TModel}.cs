@@ -56,7 +56,7 @@ namespace crossql
         }
 
         /// <summary>
-        /// Recursive constructor
+        /// Recursive constructor used when creating new Joins.
         /// </summary>
         internal DbQuery(DbQuery<TModel> context, string joinTableName, Expression joinExpression)
         {
@@ -64,15 +64,9 @@ namespace crossql
             _joinTableName = joinTableName;
             _joinExpression = joinExpression;
         }
-        
-        public IDbQuery<TModel, TJoin> Join<TJoin>(Expression<Func<TModel, object>> expression) where TJoin : class, new()
-        {
-            var joinTableName = typeof(TJoin).BuildTableName();
-            return new DbQuery<TModel, TJoin>(this, joinTableName, expression);
-        }
 
-        public Task<int> Count() 
-            => DbProvider.ExecuteScalar<int>(ToStringCount(), _whereParameters);
+        // Public Methods
+        public Task<int> Count() => DbProvider.ExecuteScalar<int>(ToStringCount(), _whereParameters);
 
         public Task<IEnumerable<TModel>> Select() => Select(_dbMapper.BuildListFrom);
         
@@ -83,6 +77,7 @@ namespace crossql
 
         public virtual Task Update(TModel model, Func<TModel, IDictionary<string, object>> mapToDbParameters)
         {
+            // todo: move away from ID opinion, extract value from config first and fall back to ID if unavailable.
             var dbFields = _dbMapper.FieldNames
                 .Where(field => field != "ID")
                 .Select(field => string.Format("{1}{0}{2} = @{0}", field, DbProvider.Dialect.OpenBrace,DbProvider.Dialect.CloseBrace)).ToList();
@@ -96,8 +91,15 @@ namespace crossql
             return DbProvider.ExecuteNonQuery(commandText, parameters);
         }
         
-        public Task Delete() 
-            => DbProvider.ExecuteNonQuery(ToStringDelete(), _whereParameters);
+        public Task Delete() => DbProvider.ExecuteNonQuery(ToStringDelete(), _whereParameters);
+
+        public Task Truncate() => DbProvider.ExecuteNonQuery(ToStringTruncate());
+        
+        public IDbQuery<TModel, TJoin> Join<TJoin>(Expression<Func<TModel, object>> expression) where TJoin : class, new()
+        {
+            var joinTableName = typeof(TJoin).BuildTableName();
+            return new DbQuery<TModel, TJoin>(this, joinTableName, expression);
+        }
 
         public IDbQuery<TModel> OrderBy(Expression<Func<TModel, object>> expression)
         {
@@ -125,17 +127,20 @@ namespace crossql
             return this;
         }
 
-        public Task Truncate() => DbProvider.ExecuteNonQuery(ToStringTruncate());
-
-        // ToString methods do the evaluation
+        // ToString methods do the evaluation and return the final SQL string.
         public override string ToString()
         {
+            // todo: check to see if the query is already cached. If so, short circuit this call and reuse it,
+            // note: still have to extract the where parameters
+            
             // join
-            var visitor = new JoinExpressionVisitor(DbProvider.Dialect);
-            var joinClause = GenerateJoinClauseRecursive(this, visitor);
+            var joinVisitor = new JoinExpressionVisitor(DbProvider.Dialect);
+            var joinClause = GenerateJoinClauseRecursive(this, joinVisitor);
             
             // where
-            var whereClause = GenerateWhereClause();
+            var whereVisitor = new WhereExpressionVisitor(WhereParameters, DbProvider.Dialect);
+            // todo: if the query is already in the cache, we just have to visit for parameter values (WhereParameters)
+            var whereClause = GenerateWhereClause(whereVisitor);
             
             // skip take
             var skipTakeClause = GenerateSkipTake();
@@ -153,7 +158,7 @@ namespace crossql
 
         public string ToStringTruncate() => string.Format(DbProvider.Dialect.Truncate, _tableName);
 
-        // Private methods below here
+        // Private Methods
         private static string GenerateFinalClause(string joinClause, string whereClause, string orderByClause, string skipTakeClause) 
             =>  string.Join("\n", joinClause, whereClause, orderByClause, skipTakeClause);
 
@@ -185,7 +190,10 @@ namespace crossql
 
         }
 
-        private string GenerateWhereClause()
+        private string GenerateWhereClause() =>
+            GenerateWhereClause(new WhereExpressionVisitor(WhereParameters, DbProvider.Dialect));
+        
+        private string GenerateWhereClause(WhereExpressionVisitor whereVisitor)
         {
             if (!WhereExpressions.Any()) return string.Empty;
             var whereClause = string.Empty;
@@ -193,16 +201,17 @@ namespace crossql
             for (var index = 0; index < WhereExpressions.Count; index++)
             {
                 var expression = WhereExpressions[index];
-                var whereExpressionVisitor =
-                    new WhereExpressionVisitor(WhereParameters, DbProvider.Dialect).Visit(expression);
-                _whereParameters = whereExpressionVisitor.Parameters;
+                whereVisitor.Visit(expression);
+                _whereParameters = whereVisitor.Parameters;
 
                 if (string.IsNullOrEmpty(whereClause))
-                    whereClause = string.Format(DbProvider.Dialect.Where, whereExpressionVisitor.WhereExpression);
+                    whereClause = string.Format(DbProvider.Dialect.Where, whereVisitor.WhereExpression);
                 else
-                    whereClause += " AND " + whereExpressionVisitor.WhereExpression;
+                    whereClause += " AND " + whereVisitor.WhereExpression;
             }
-
+            
+            WhereExpressions.Clear();
+            WhereParameters.Clear();
             return whereClause;
         }
 
