@@ -121,7 +121,7 @@ namespace crossql
         {
             // join
             var visitor = new JoinExpressionVisitor(DbProvider.Dialect);
-            var joinClause = GenerateJoinClause(this, visitor);
+            var joinClause = GenerateJoinClauseRecursive(this, visitor);
             
             // where
             var whereClause = GenerateWhereClause();
@@ -145,11 +145,11 @@ namespace crossql
         private static string GenerateFinalClause(string joinClause, string whereClause, string orderByClause, string skipTakeClause) 
             =>  string.Join("\n", joinClause, whereClause, orderByClause, skipTakeClause);
 
-        private static string GenerateJoinClause(DbQuery<TModel> context, JoinExpressionVisitor visitor, string joinClause = "")
+        private static string GenerateJoinClauseRecursive(DbQuery<TModel> context, JoinExpressionVisitor visitor, string joinClause = "")
         {
             if (!(context._context is null))
             {
-                joinClause += GenerateJoinClause(context._context, visitor, joinClause);
+                joinClause += GenerateJoinClauseRecursive(context._context, visitor, joinClause);
             }
             
             if (!(context._joinExpression is null))
@@ -218,12 +218,13 @@ namespace crossql
 
             if (joinType == JoinType.ManyToMany)
             {
-                var names = new[] {"derp", joinTableName};
+                // OPINION: many to many tables are sorted alphabetically, joined by an underscore
+                var names = new[] {context.TableName, joinTableName};
                 Array.Sort(names, StringComparer.CurrentCulture);
                 var manyManyTableName = string.Join("_", names);
 
                 var join = string.Format(dbProvider.Dialect.ManyToManyJoin,
-                    "derp", "Id", manyManyTableName, "derp".Singularize() + "Id", joinTableName,
+                    context.TableName, "Id", manyManyTableName, context.TableName.Singularize() + "Id", joinTableName,
                     joinTableName.Singularize() + "Id");
                 return join;
             }
