@@ -1,51 +1,66 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 using crossql.Extensions;
+using crossql.Helpers;
 
 namespace crossql
 {
     public class DbQuery<TModel> : IDbQuery<TModel>
         where TModel : class, new()
     {
-        private Dictionary<string, object> _whereParameters = new Dictionary<string, object>();
+        // const string _joinFormat = "{3}{0}{4}.{3}Id{4} == {3}{1}{4}.{3}{2}Id{4}";
+        
+        
+        private readonly Expression _joinExpression;
+        private readonly string _joinTableName;
         private readonly IDbProvider _dbProvider;
         private readonly IDbMapper<TModel> _dbMapper;
-        private Expression<Func<TModel, object>> _orderByExpression;
         private readonly string _tableName;
         private readonly DbQuery<TModel> _context;
+        private readonly IList<Expression<Func<TModel, bool>>> _whereExpressions = new List<Expression<Func<TModel, bool>>>();
+
+        private Dictionary<string, object> _whereParameters;
+        private Expression<Func<TModel, object>> _orderByExpression;
         private bool _orderBySet;
         private string _orderBySortOrder;
-        private readonly IList<Expression<Func<TModel, bool>>> _whereExpressions = new List<Expression<Func<TModel, bool>>>();
         private int _skip;
         private int _take;
         private bool _hasSkipTake;
 
-        private Dictionary<string, object> WhereParameters => _context?._whereParameters ?? _whereParameters;
-        private Expression<Func<TModel, object>> OrderByExpression => _context?._orderByExpression ?? _orderByExpression;
-        private IList<Expression<Func<TModel, bool>>> WhereExpressions => _context?._whereExpressions ?? _whereExpressions;
-        private IDbProvider DbProvider => _context?._dbProvider ?? _dbProvider;
+        private Dictionary<string, object> WhereParameters => _whereParameters ?? _context?.WhereParameters;
+        private Expression<Func<TModel, object>> OrderByExpression => _orderByExpression ?? _context?.OrderByExpression;
+        private IList<Expression<Func<TModel, bool>>> WhereExpressions => _whereExpressions ?? _context?.WhereExpressions ;
+        private IDbProvider DbProvider => _dbProvider ?? _context?.DbProvider;
+        private string TableName => _tableName ?? _context?.TableName;
         
         public DbQuery(IDbProvider dbProvider, IDbMapper<TModel> dbMapper)
         {
             _dbMapper = dbMapper;
             _dbProvider = dbProvider;
+            _whereParameters = new Dictionary<string, object>();
            _tableName = typeof(TModel).BuildTableName();
         }
 
         /// <summary>
         /// Recursive constructor
         /// </summary>
-        internal DbQuery(DbQuery<TModel> context)
+        internal DbQuery(DbQuery<TModel> context, string joinTableName, Expression joinExpression)
         {
             _context = context;
+            _joinTableName = joinTableName;
+            _joinExpression = joinExpression;
         }
         
-        public IDbQuery<TModel, TJoin> Join<TJoin>(Expression<Func<TModel, object>> expression) where TJoin : class, new() 
-            => new DbQuery<TModel, TJoin>(this);
+        public IDbQuery<TModel, TJoin> Join<TJoin>(Expression<Func<TModel, object>> expression) where TJoin : class, new()
+        {
+            var joinTableName = typeof(TJoin).BuildTableName();
+            return new DbQuery<TModel, TJoin>(this, joinTableName, expression);
+        }
 
         public Task<int> Count() 
             => DbProvider.ExecuteScalar<int>(ToStringCount(), _whereParameters);
@@ -105,21 +120,24 @@ namespace crossql
 
         public override string ToString()
         {
+            // join
+            if(DbProvider is null)
+                Debugger.Break();
+            
+            var visitor = new JoinExpressionVisitor(DbProvider.Dialect);
+            var joinClause = GenerateJoinClause(this, visitor);
+            
+            // where
+            var whereClause = GenerateWhereClause();
+            
             // skip take
             var skipTakeClause = GenerateSkipTake();
 
             // order by
             var orderByClause = GenerateOrderByClause();
             
-            // where
-            var whereClause = GenerateWhereClause();
-            var whereOrderBySkipTakeClause = WhereOrderBySkipTake(whereClause, orderByClause, skipTakeClause);
-            
-              // todo: this is where we iterate over the DbQuery and generate the goods
-              // var expressionVisitor = new JoinExpressionVisitor(DbProvider.Dialect).Visit(expression);
-              // _joinExpression = BuildJoinExpression(JoinType.Inner, expressionVisitor.JoinExpression);
-
-            return string.Format(DbProvider.Dialect.SelectFrom, _tableName, whereOrderBySkipTakeClause).Trim();
+            var clause = GenerateFinalClause(joinClause, whereClause, orderByClause, skipTakeClause);
+            return string.Format(DbProvider.Dialect.SelectFrom, TableName, clause).Trim();
         }
 
         public virtual string ToStringCount() => string.Format(DbProvider.Dialect.SelectCountFrom, _tableName, GenerateWhereClause()).Trim();
@@ -128,9 +146,25 @@ namespace crossql
 
         public string ToStringTruncate() => string.Format(DbProvider.Dialect.Truncate, _tableName);
 
-        private static string WhereOrderBySkipTake(string whereClause, string orderByClause, string skipTakeClause) 
-            => string.Join(" ", whereClause, orderByClause, skipTakeClause);
+        private static string GenerateFinalClause(string joinClause, string whereClause, string orderByClause, string skipTakeClause) 
+            =>  string.Join("\n", joinClause, whereClause, orderByClause, skipTakeClause);
 
+        private static string GenerateJoinClause(DbQuery<TModel> context, JoinExpressionVisitor visitor, string joinClause = "")
+        {
+            if (!(context._context is null))
+            {
+                joinClause += GenerateJoinClause(context._context, visitor, joinClause);
+            }
+            
+            if (!(context._joinExpression is null))
+            {
+                visitor.Visit(context._joinExpression);
+                joinClause += $"\n{BuildJoinExpression(JoinType.Inner, visitor.JoinExpression, context)}";
+            }
+
+            return joinClause;
+        }
+        
         private string GenerateOrderByClause()
         {
             if (OrderByExpression == null) return string.Empty;
@@ -176,26 +210,29 @@ namespace crossql
             _orderBySortOrder = sortOrder;        
         }
 
-//        protected string BuildJoinExpression(JoinType joinType, string joinString)
-//        {
-//            if (joinType == JoinType.Inner)
-//                return string.Format(DbProvider.Dialect.InnerJoin, _joinTableName, joinString);
-//            if (joinType == JoinType.Left)
-//                return string.Format(DbProvider.Dialect.LeftJoin, _joinTableName, joinString);
-//
-//            if (joinType == JoinType.ManyToMany)
-//            {
-//                var names = new[] {TableName, _joinTableName};
-//                Array.Sort(names, StringComparer.CurrentCulture);
-//                var manyManyTableName = string.Join("_", names);
-//
-//                var join = string.Format(DbProvider.Dialect.ManyToManyJoin,
-//                    TableName, "Id", manyManyTableName, TableName.Singularize() + "Id", _joinTableName,
-//                    _joinTableName.Singularize() + "Id");
-//                return join;
-//            }
-//
-//            throw new NotSupportedException("The join type you selected is not yet supported.");
-//        }
+        private static string BuildJoinExpression(JoinType joinType, string joinString, DbQuery<TModel> context)
+        {
+            var joinTableName = context._joinTableName;
+            var dbProvider = context.DbProvider;
+            
+            if (joinType == JoinType.Inner)
+                return string.Format(dbProvider.Dialect.InnerJoin, joinTableName, joinString);
+            if (joinType == JoinType.Left)
+                return string.Format(dbProvider.Dialect.LeftJoin, joinTableName, joinString);
+
+            if (joinType == JoinType.ManyToMany)
+            {
+                var names = new[] {"derp", joinTableName};
+                Array.Sort(names, StringComparer.CurrentCulture);
+                var manyManyTableName = string.Join("_", names);
+
+                var join = string.Format(dbProvider.Dialect.ManyToManyJoin,
+                    "derp", "Id", manyManyTableName, "derp".Singularize() + "Id", joinTableName,
+                    joinTableName.Singularize() + "Id");
+                return join;
+            }
+
+            throw new NotSupportedException("The join type you selected is not yet supported.");
+        }
     }
 }
