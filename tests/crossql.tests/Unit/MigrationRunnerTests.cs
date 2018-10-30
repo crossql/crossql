@@ -29,7 +29,7 @@ namespace crossql.tests.Unit
             _provider.SetupGet(p => p.DatabaseName).Returns("foo");
             _provider.Setup(x => x.Query<Version>()).Returns(_query.Object);
             _query.Setup(x => x.Where(It.IsAny<Expression<Func<Version, bool>>>())).Returns(_query.Object);
-            _query.Setup(x => x.OrderBy(It.IsAny<Expression<Func<Version, object>>>(), It.IsAny<OrderDirection>())).Returns(_query.Object);
+            _query.Setup(x => x.OrderBy(It.IsAny<Expression<Func<Version, object>>>())).Returns(_query.Object);
             _query.Setup(x => x.Select()).ReturnsAsync(new List<Version>());
         }
 

@@ -31,7 +31,7 @@ namespace crossql.tests.Integration
         };
 
         private static IDbProvider SqliteOnly => new SqliteDbProvider(new SqliteDbConnectionProvider(
-            $"{_testDbName}.sqlite3", SqliteSettings.Default));
+            $"{_testDbName}.sqlite3", SqliteSettings.Default),SetConfig);
 
         private static IDbProvider MsSqlOnly => new SqlServerDbProvider(
             new SqlServerDbConnectionProvider(_sqlServerSettings.ConnectionString, _sqlServerSettings.ProviderName),

@@ -208,7 +208,7 @@ namespace crossql.Migrations
         {
             var databaseVersion = await _dbProvider.Query<Version>()
                 .Where(dbv => dbv.VersionNumber == migration.MigrationVersion)
-                .OrderBy(v => v.VersionNumber, OrderDirection.Descending)
+                .OrderByDescending(v => v.VersionNumber)
                 .FirstOrDefaultAsync()
                 .ConfigureAwait(false);
 

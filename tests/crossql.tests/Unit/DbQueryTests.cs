@@ -59,7 +59,7 @@ namespace crossql.tests.Unit
             // execute
             var actualQuery = dbProvider.Query<AuthorModel>()
                                         .Where(u => u.Id == testGuid)
-                                        .OrderBy(u => u.Email, OrderDirection.Descending)
+                                        .OrderByDescending(u => u.Email)
                                         .SkipTake(20, 10)
                                         .ToString();
 
@@ -142,7 +142,7 @@ namespace crossql.tests.Unit
             // execute
             var actualQuery = dbProvider.Query<AuthorModel>()
                                         .Where(u => u.FirstName.Contains("Bo"))
-                                        .OrderBy(u => u.Email, OrderDirection.Ascending)
+                                        .OrderBy(u => u.Email)
                                         .ToString();
 
             // assert
@@ -159,7 +159,7 @@ namespace crossql.tests.Unit
             // execute
             var actualQuery = dbProvider.Query<AuthorModel>()
                                         .Where(u => u.FirstName.Contains("Bo"))
-                                        .OrderBy(u => u.Email, OrderDirection.Descending)
+                                        .OrderByDescending(u => u.Email)
                                         .ToString();
 
             // assert
@@ -178,7 +178,7 @@ namespace crossql.tests.Unit
             // execute
             var actualQuery = dbProvider.Query<BookModel>()
                                         .Where(b => b.Publisher.Id == id)
-                                        .OrderBy(b => b.Name, OrderDirection.Descending)
+                                        .OrderByDescending(b => b.Name)
                                         .ToString();
 
             // assert

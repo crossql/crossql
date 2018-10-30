@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Linq.Expressions;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
 namespace crossql
@@ -11,9 +12,13 @@ namespace crossql
     {
         Task<int> Count();
         Task Delete();
-        IDbQuery<TModel, TJoinTo> Join<TJoinTo>() where TJoinTo : class, new();
-        IDbQuery<TModel, TJoinTo> ManyToManyJoin<TJoinTo>() where TJoinTo : class, new();
-        IDbQuery<TModel> OrderBy(Expression<Func<TModel, object>> orderByExpression, OrderDirection direction);
+        
+        IDbQuery<TModel, TJoin> Join<TJoin>(Expression<Func<TModel, object>> expression) 
+            where TJoin : class, new();
+    
+        IDbQuery<TModel> OrderBy(Expression<Func<TModel, object>> expression);
+        IDbQuery<TModel> OrderByDescending(Expression<Func<TModel, object>> expression);
+        
         Task<IEnumerable<TModel>> Select();
         Task<IEnumerable<TResult>> Select<TResult>(Func<IDataReader, IEnumerable<TResult>> mapperFunc);
         IDbQuery<TModel> SkipTake(int skip, int take);

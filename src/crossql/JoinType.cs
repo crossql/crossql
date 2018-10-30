@@ -5,6 +5,6 @@
         Inner,
         Left,
         Right,
-        ManyToMany
+        ManyToMany,
     }
 }

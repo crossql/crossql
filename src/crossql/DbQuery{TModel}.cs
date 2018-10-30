@@ -8,96 +8,181 @@ using crossql.Extensions;
 
 namespace crossql
 {
-    public class DbQuery<TModel> : IDbQuery<TModel> 
+    public class DbQuery<TModel> : IDbQuery<TModel>
         where TModel : class, new()
     {
-        protected readonly IDbMapper<TModel> _DbMapper;
-        protected readonly IDbProvider _DbProvider;
-        protected string _OrderByClause;
-        protected Dictionary<string, object> _Parameters;
-        protected string _SkipTakeClause;
-        protected readonly string _TableName;
-        protected string _WhereClause;
-        private OrderByExpressionVisitor _orderByExpressionVisitor;
-        private WhereExpressionVisitor _whereExpressionVisitor;
+        private Dictionary<string, object> _whereParameters = new Dictionary<string, object>();
+        private readonly IDbProvider _dbProvider;
+        private readonly IDbMapper<TModel> _dbMapper;
+        private Expression<Func<TModel, object>> _orderByExpression;
+        private string _skipTakeClause;
+        private readonly string _tableName;
+        private string _orderByClause;
+        private string _whereClause;
+        private readonly DbQuery<TModel> _context;
+        private bool _orderBySet;
+        private string _orderBySortOrder;
+        private readonly IList<Expression<Func<TModel, bool>>> _whereExpressions = new List<Expression<Func<TModel, bool>>>();
 
+        private Dictionary<string, object> WhereParameters => _context?._whereParameters ?? _whereParameters;
+        private Expression<Func<TModel, object>> OrderByExpression => _context?._orderByExpression ?? _orderByExpression;
+        private IList<Expression<Func<TModel, bool>>> WhereExpressions => _context?._whereExpressions ?? _whereExpressions;
+        private IDbProvider DbProvider => _context?._dbProvider ?? _dbProvider;
+        
         public DbQuery(IDbProvider dbProvider, IDbMapper<TModel> dbMapper)
         {
-            _DbMapper = dbMapper;
-            _TableName = typeof(TModel).BuildTableName();
-            _DbProvider = dbProvider;
-            _Parameters = new Dictionary<string, object>();
+            _dbMapper = dbMapper;
+            _dbProvider = dbProvider;
+           _tableName = typeof(TModel).BuildTableName();
         }
 
-        public Task<int> Count() => _DbProvider.ExecuteScalar<int>(ToStringCount(), _Parameters);
-
-        public Task Delete() => _DbProvider.ExecuteNonQuery(ToStringDelete(), _Parameters);
-
-        public IDbQuery<TModel, TJoinTo> Join<TJoinTo>() where TJoinTo : class, new() => new DbQuery<TModel, TJoinTo>(_DbProvider, JoinType.Left, _DbMapper);
-
-        public IDbQuery<TModel, TJoinTo> ManyToManyJoin<TJoinTo>() where TJoinTo : class, new() => new DbQuery<TModel, TJoinTo>(_DbProvider, JoinType.ManyToMany, _DbMapper);
-
-        public IDbQuery<TModel> OrderBy(Expression<Func<TModel, object>> expression, OrderDirection direction)
+        /// <summary>
+        /// Recursive constructor
+        /// </summary>
+        internal DbQuery(DbQuery<TModel> context)
         {
-            _orderByExpressionVisitor = new OrderByExpressionVisitor(_DbProvider.Dialect).Visit(expression);
+            _context = context;
+        }
+        
+        public IDbQuery<TModel, TJoin> Join<TJoin>(Expression<Func<TModel, object>> expression) where TJoin : class, new()
+        {
+            return new DbQuery<TModel, TJoin>(this);
+        }
 
-            _OrderByClause = string.Format(
-                _DbProvider.Dialect.OrderBy,
-                _orderByExpressionVisitor.OrderByExpression,
-                direction == OrderDirection.Ascending ? "ASC" : "DESC");
+        public Task<int> Count() => DbProvider.ExecuteScalar<int>(ToStringCount(), _whereParameters);
 
+        public Task Delete() => DbProvider.ExecuteNonQuery(ToStringDelete(), _whereParameters);
+
+        public IDbQuery<TModel> OrderBy(Expression<Func<TModel, object>> expression)
+        {
+            ApplyOrderExpression("ASC", expression);
             return this;
         }
 
-        public Task<IEnumerable<TResult>> Select<TResult>(Func<IDataReader, IEnumerable<TResult>> mapperFunc) => _DbProvider.ExecuteReader(ToString(), _Parameters, mapperFunc);
+        public IDbQuery<TModel> OrderByDescending(Expression<Func<TModel, object>> expression)
+        {
+            ApplyOrderExpression("DESC", expression);
+            return this;        
+        }
 
-        public Task<IEnumerable<TModel>> Select() => Select(_DbMapper.BuildListFrom);
+        public Task<IEnumerable<TResult>> Select<TResult>(Func<IDataReader, IEnumerable<TResult>> mapperFunc) 
+            => DbProvider.ExecuteReader(ToString(), _whereParameters, mapperFunc);
+
+        public Task<IEnumerable<TModel>> Select() => Select(_dbMapper.BuildListFrom);
 
         public IDbQuery<TModel> SkipTake(int skip, int take)
         {
-            _SkipTakeClause = string.Format(_DbProvider.Dialect.SkipTake, skip, take);
+            _skipTakeClause = string.Format(DbProvider.Dialect.SkipTake, skip, take);
             return this;
         }
 
-        public virtual string ToStringCount() => string.Format(_DbProvider.Dialect.SelectCountFrom, _TableName, GetExtendedWhereClause()).Trim();
+        public virtual string ToStringCount() => string.Format(DbProvider.Dialect.SelectCountFrom, _tableName, GenerateWhereClause()).Trim();
 
-        public virtual string ToStringDelete() => string.Format(_DbProvider.Dialect.DeleteFrom, _TableName, _WhereClause);
+        public virtual string ToStringDelete() => string.Format(DbProvider.Dialect.DeleteFrom, _tableName, GenerateWhereClause());
 
-        public string ToStringTruncate() => string.Format(_DbProvider.Dialect.Truncate, _TableName);
+        public string ToStringTruncate() => string.Format(DbProvider.Dialect.Truncate, _tableName);
 
-        public void Truncate() => _DbProvider.ExecuteNonQuery(ToStringTruncate());
+        public void Truncate() => DbProvider.ExecuteNonQuery(ToStringTruncate());
 
-        public Task Update(TModel model) => Update(model, _DbMapper.BuildDbParametersFrom);
+        public Task Update(TModel model) => Update(model, _dbMapper.BuildDbParametersFrom);
 
         public virtual Task Update(TModel model, Func<TModel, IDictionary<string, object>> mapToDbParameters)
         {
-            var dbFields = _DbMapper.FieldNames
+            var dbFields = _dbMapper.FieldNames
                 .Where(field => field != "ID")
-                .Select(field => string.Format("{1}{0}{2} = @{0}", field, _DbProvider.Dialect.OpenBrace,_DbProvider.Dialect.CloseBrace)).ToList();
+                .Select(field => string.Format("{1}{0}{2} = @{0}", field, DbProvider.Dialect.OpenBrace,DbProvider.Dialect.CloseBrace)).ToList();
 
-            var whereClause = GetExtendedWhereClause();
-            var commandText = string.Format(_DbProvider.Dialect.Update, _TableName, string.Join(",", dbFields),
+            var whereClause = WhereOrderBySkipTake();
+            var commandText = string.Format(DbProvider.Dialect.Update, _tableName, string.Join(",", dbFields),
                 whereClause);
-            var parameters = _Parameters.Union(mapToDbParameters(model))
+            var parameters = _whereParameters.Union(mapToDbParameters(model))
                 .ToDictionary(pair => pair.Key, pair => pair.Value);
 
-            return _DbProvider.ExecuteNonQuery(commandText, parameters);
+            return DbProvider.ExecuteNonQuery(commandText, parameters);
         }
 
         public IDbQuery<TModel> Where(Expression<Func<TModel, bool>> expression)
         {
-            _whereExpressionVisitor = new WhereExpressionVisitor(_Parameters, _DbProvider.Dialect).Visit(expression);
-            _Parameters = _whereExpressionVisitor.Parameters;
-
-            if (string.IsNullOrEmpty(_WhereClause))
-                _WhereClause = string.Format(_DbProvider.Dialect.Where, _whereExpressionVisitor.WhereExpression);
-            else
-                _WhereClause += " AND " + _whereExpressionVisitor.WhereExpression;
+            _whereExpressions.Add(expression);
             return this;
         }
 
-        public override string ToString() => string.Format(_DbProvider.Dialect.SelectFrom, _TableName, GetExtendedWhereClause()).Trim();
+        public override string ToString()
+        {
+            // order by
+            if (OrderByExpression != null)
+            {
+                var orderByExpressionVisitor = new OrderByExpressionVisitor(DbProvider.Dialect).Visit(_orderByExpression);
 
-        protected string GetExtendedWhereClause() => string.Join(" ", _WhereClause, _OrderByClause, _SkipTakeClause);
+                _orderByClause = string.Format(
+                    DbProvider.Dialect.OrderBy,
+                    orderByExpressionVisitor.OrderByExpression, _orderBySortOrder);      
+            }
+            
+            // where
+            GenerateWhereClause();
+            var whereClause = WhereOrderBySkipTake();
+            
+              // todo: this is where we iterate over the DbQuery and generate the goods
+              // var expressionVisitor = new JoinExpressionVisitor(DbProvider.Dialect).Visit(expression);
+              // _joinExpression = BuildJoinExpression(JoinType.Inner, expressionVisitor.JoinExpression);
+
+            return string.Format(DbProvider.Dialect.SelectFrom, _tableName, whereClause).Trim();
+        }
+
+        private string GenerateWhereClause()
+        {
+            if (!WhereExpressions.Any()) return string.Empty;
+
+            for (var index = 0; index < WhereExpressions.Count; index++)
+            {
+                var expression = WhereExpressions[index];
+                var whereExpressionVisitor =
+                    new WhereExpressionVisitor(WhereParameters, DbProvider.Dialect).Visit(expression);
+                _whereParameters = whereExpressionVisitor.Parameters;
+
+                if (string.IsNullOrEmpty(_whereClause))
+                    _whereClause = string.Format(DbProvider.Dialect.Where, whereExpressionVisitor.WhereExpression);
+                else
+                    _whereClause += " AND " + whereExpressionVisitor.WhereExpression;
+            }
+
+            return _whereClause;
+        }
+
+        private string WhereOrderBySkipTake()
+        {
+            return string.Join(" ", _whereClause, _orderByClause, _skipTakeClause);
+        }
+
+        private void ApplyOrderExpression(string sortOrder, Expression<Func<TModel,object>> expression)
+        {
+            if(_orderBySet) throw new ArgumentException("You cannot set OrderBy multiple times");
+            _orderByExpression = expression;
+            _orderBySet = true;
+            _orderBySortOrder = sortOrder;        
+        }
+        
+//        protected string BuildJoinExpression(JoinType joinType, string joinString)
+//        {
+//            if (joinType == JoinType.Inner)
+//                return string.Format(DbProvider.Dialect.InnerJoin, _joinTableName, joinString);
+//            if (joinType == JoinType.Left)
+//                return string.Format(DbProvider.Dialect.LeftJoin, _joinTableName, joinString);
+//
+//            if (joinType == JoinType.ManyToMany)
+//            {
+//                var names = new[] {TableName, _joinTableName};
+//                Array.Sort(names, StringComparer.CurrentCulture);
+//                var manyManyTableName = string.Join("_", names);
+//
+//                var join = string.Format(DbProvider.Dialect.ManyToManyJoin,
+//                    TableName, "Id", manyManyTableName, TableName.Singularize() + "Id", _joinTableName,
+//                    _joinTableName.Singularize() + "Id");
+//                return join;
+//            }
+//
+//            throw new NotSupportedException("The join type you selected is not yet supported.");
+//        }
     }
 }
