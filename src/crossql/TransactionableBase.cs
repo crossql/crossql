@@ -54,7 +54,7 @@ namespace crossql
             return ExecuteNonQuery(commandText, visitor.Parameters);
         }
 
-        public void Dispose()
+        public virtual void Dispose()
         {
             _Connection?.Dispose();
             _Transaction?.Dispose();

@@ -46,12 +46,20 @@ namespace crossql.sqlite
                 {
                     await command.ExecuteNonQueryAsync().ConfigureAwait(false);
                 }
-                catch
+                catch(Exception ex)
                 {
                     _Transaction?.Rollback();
                     throw;
                 }
             }
+        }
+
+        public override void Dispose()
+        {
+            var provider = (DbConnectionProvider) _Provider;
+            if(!provider.InMemory)
+                _Connection?.Dispose();
+            _Transaction?.Dispose();
         }
     }
 }

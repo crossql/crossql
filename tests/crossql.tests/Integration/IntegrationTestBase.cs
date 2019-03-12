@@ -1,8 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Configuration;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using crossql.Config;
+using crossql.Extensions;
 using crossql.Migrations;
 using crossql.sqlite;
 using crossql.tests.Helpers.Migrations;
@@ -25,10 +27,16 @@ namespace crossql.tests.Integration
 
         protected static IEnumerable<IDbProvider> DbProviders => new[]
         {
+            SqliteInMemory,
             SqliteOnly,
             MsSqlOnly,
             MySqlOnly
         };
+
+        private static IDbProvider SqliteInMemory => _sqliteInMemory ?? (_sqliteInMemory = new SqliteDbProvider(new SqliteDbConnectionProvider(
+            ":memory:", SqliteSettings.Default)));
+
+        private static IDbProvider _sqliteInMemory;
 
         private static IDbProvider SqliteOnly => new SqliteDbProvider(new SqliteDbConnectionProvider(
             $"{_testDbName}.sqlite3", SqliteSettings.Default));
@@ -41,24 +49,39 @@ namespace crossql.tests.Integration
             new MySqlDbConnectionProvider(_mySqlSettings.ConnectionString, _mySqlSettings.ProviderName), _testDbName,
             SetConfig);
 
+        [OneTimeTearDown]
+        public async Task Teardown()
+        {
+            var backupConnection = new SqliteDbConnectionProvider($"{_testDbName}_memory_dump.sqlite3", SqliteSettings.Default);
+            var existingInMemoryConnection = (SqliteDbProvider) SqliteInMemory;
+            await existingInMemoryConnection.BackupDatabase(backupConnection);
+        }
+
         [OneTimeSetUp]
         public async Task Setup()
         {
-            foreach (var dbProvider in DbProviders)
+            try
             {
-                Trace.WriteLine(TraceObjectGraphInfo(dbProvider));
-                var migrationRunner = new MigrationRunner(dbProvider);
-
-                // drop the database before running the tests again
-                await migrationRunner.DropDatabase();
-
-                await migrationRunner.RunAll(SystemRole.Server, new List<IDbMigration>
+                foreach (var dbProvider in DbProviders)
                 {
-                    new Migration001(),
-                    new Migration002(),
-                    new Migration003(),
-                    new Migration004()
-                });
+                    Trace.WriteLine(TraceObjectGraphInfo(dbProvider));
+                    var migrationRunner = new MigrationRunner(dbProvider);
+
+                    // drop the database before running the tests again
+                    await migrationRunner.DropDatabase();
+
+                    await migrationRunner.RunAll(SystemRole.Server, new List<IDbMigration>
+                    {
+                        new Migration001(),
+                        new Migration002(),
+                        new Migration003(),
+                        new Migration004()
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                var e = ex;
             }
         }
 

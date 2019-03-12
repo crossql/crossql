@@ -1,15 +1,19 @@
 using System;
 using System.Data;
+using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 using Microsoft.Data.Sqlite;
 
 namespace crossql.sqlite
 {
-    public class DbConnectionProvider : IDbConnectionProvider
+    public class DbConnectionProvider : IDbConnectionProvider, IDisposable
     {
+        private const string _memory = ":memory:";
         private static readonly Func<string, string> _defaultDbPath = s => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), s);
+        private static readonly Func<string, string> _inMemoryDbPath = s => s; //$"{s};Version=3;New=True;";
         private readonly string _connectionString;
+        private SqliteConnection _connection;
 
         /// <inheritdoc />
         /// <summary>
@@ -17,7 +21,7 @@ namespace crossql.sqlite
         ///     <see cref="F:System.Environment.SpecialFolder.ApplicationData" />.
         /// </summary>
         /// <param name="sqlFile">name of your sql file</param>
-        public DbConnectionProvider(string sqlFile) : this(sqlFile, SqliteSettings.Default, _defaultDbPath) { }
+        public DbConnectionProvider(string sqlFile) : this(sqlFile, SqliteSettings.Default, sqlFile.Equals(_memory, StringComparison.OrdinalIgnoreCase) ? _inMemoryDbPath : _defaultDbPath) { }
 
         /// <inheritdoc />
         /// <summary>
@@ -26,7 +30,7 @@ namespace crossql.sqlite
         /// </summary>
         /// <param name="sqlFile">name of your sql file</param>
         /// <param name="sqliteSettings">sqlite settings</param>
-        public DbConnectionProvider(string sqlFile, SqliteSettings sqliteSettings) : this(sqlFile, sqliteSettings, _defaultDbPath) { }
+        public DbConnectionProvider(string sqlFile, SqliteSettings sqliteSettings) : this(sqlFile, sqliteSettings, sqlFile.Equals(_memory, StringComparison.OrdinalIgnoreCase) ? _inMemoryDbPath : _defaultDbPath) { }
 
         /// <inheritdoc />
         /// <summary>
@@ -61,6 +65,7 @@ namespace crossql.sqlite
         /// </example>
         public DbConnectionProvider(string sqlFile, SqliteSettings sqliteSettings, Func<string, string> setupDbPath)
         {
+            if (sqlFile == _memory) InMemory = true;
             var realDbPath = setupDbPath.Invoke(sqlFile);
             if (sqliteSettings.BrowsableConnectionString) DatabasePath = realDbPath;
             
@@ -78,6 +83,11 @@ namespace crossql.sqlite
         ///     Gets the path to the database.
         /// </summary>
         public string DatabasePath { get; }
+        
+        /// <summary>
+        ///     Gets whether or not the database is in memory
+        /// </summary>
+        public bool InMemory { get; }
 
         /// <inheritdoc />
         /// <summary>
@@ -86,10 +96,18 @@ namespace crossql.sqlite
         /// <returns>returns an open  <see cref="SqliteConnection" /></returns>
         public async Task<IDbConnection> GetOpenConnection()
         {
-            var connection = new SqliteConnection(_connectionString);
-            await connection.OpenAsync().ConfigureAwait(false);
-            
-            return connection;
+            if (_connection is null)
+            {
+                _connection = new SqliteConnection(_connectionString);
+            }
+            await _connection.OpenAsync().ConfigureAwait(false);
+            return _connection;
+        }
+
+        public void Dispose()
+        {
+            _connection?.Close();
+            _connection?.Dispose();
         }
     }
 }
