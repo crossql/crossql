@@ -148,6 +148,8 @@ namespace crossql.sqlite
             var source = (SqliteConnection) sourceConnection;
             
             source.BackupDatabase(destination);
+            destination.Close();
+            destination.Dispose();
         }
     }
 }
