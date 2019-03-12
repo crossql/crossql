@@ -14,7 +14,7 @@ namespace crossql.sqlite
 {
     public class DbProvider : DbProviderBase
     {
-        private readonly IDbConnectionProvider _connectionProvider;
+        private readonly DbConnectionProvider _connectionProvider;
         private readonly string _sqliteDatabasePath;
         private IDialect _dialect;
 
@@ -22,13 +22,15 @@ namespace crossql.sqlite
 
         public DbProvider(IDbConnectionProvider connectionProvider,  Action<DbConfiguration> config) : base(config)
         {
-            _connectionProvider = connectionProvider;
-            _sqliteDatabasePath = ((DbConnectionProvider) connectionProvider).DatabasePath;
+            _connectionProvider = (DbConnectionProvider)connectionProvider;
+            _sqliteDatabasePath = _connectionProvider.DatabasePath;
         }
 
+        public bool InMemory => _connectionProvider.InMemory;
         public sealed override IDialect Dialect => _dialect ?? (_dialect = new SqliteDialect());
 
-        public override Task<bool> CheckIfDatabaseExists() => Task.FromResult(File.Exists(_sqliteDatabasePath));
+        public override Task<bool> CheckIfDatabaseExists() 
+            => Task.FromResult(_connectionProvider.InMemory || File.Exists(_sqliteDatabasePath));
 
         public override async Task<bool> CheckIfTableColumnExists(string tableName, string columnName)
         {
@@ -44,14 +46,19 @@ namespace crossql.sqlite
 
         public override Task CreateDatabase()
         {
-            var file = File.Create(_sqliteDatabasePath);
-            file.Close();
+            if (!_connectionProvider.InMemory)
+            {
+                var file = File.Create(_sqliteDatabasePath);
+                file.Close();   
+            }
             return Task.CompletedTask;
         }
 
         public override Task DropDatabase()
         {
-            File.Delete(_sqliteDatabasePath);
+            _connectionProvider.Dispose();
+            if (!_connectionProvider.InMemory)
+                File.Delete(_sqliteDatabasePath);
             return Task.CompletedTask;
         }
 
@@ -66,23 +73,29 @@ namespace crossql.sqlite
 
         public override async Task<TResult> ExecuteReader<TResult>(string commandText, IDictionary<string, object> parameters, Func<IDataReader, TResult> readerMapper)
         {
-            using (var connection = await _connectionProvider.GetOpenConnection().ConfigureAwait(false))
+            var connection = await _connectionProvider.GetOpenConnection().ConfigureAwait(false);
             using (var command = (SqliteCommand) connection.CreateCommand())
             {
                 command.CommandType = CommandType.Text;
                 command.CommandText = commandText;
                 parameters.ForEach(p => command.Parameters.Add(CreateParameter(p)));
 
+                TResult result;
                 using (var reader = await command.ExecuteReaderAsync())
                 {
-                    return readerMapper(reader);
+                    result = readerMapper(reader);
                 }
+                
+                if(!_connectionProvider.InMemory)
+                    connection.Dispose();
+
+                return result;
             }
         }
 
         public override async Task<TKey> ExecuteScalar<TKey>(string commandText, IDictionary<string, object> parameters)
         {
-            using (var connection = await _connectionProvider.GetOpenConnection().ConfigureAwait(false))
+            var connection = await _connectionProvider.GetOpenConnection().ConfigureAwait(false);
             using (var command = (SqliteCommand) connection.CreateCommand())
             {
                 command.CommandType = CommandType.Text;
@@ -105,6 +118,9 @@ namespace crossql.sqlite
                     return (TKey) (object) DateTimeHelper.MinSqlValue;
                 }
 
+                if(!_connectionProvider.InMemory)
+                    connection.Dispose();
+                
                 return (TKey) result;
             }
         }
@@ -113,5 +129,25 @@ namespace crossql.sqlite
 
         private static SqliteParameter CreateParameter(KeyValuePair<string, object> parameter) => new SqliteParameter(parameter.Key,
             parameter.Value ?? DBNull.Value);
+
+        public async Task BackupDatabase(DbConnectionProvider destinationConnectionProvider)
+        {
+            if (!destinationConnectionProvider.InMemory)
+            {
+                if(File.Exists(destinationConnectionProvider.DatabasePath))
+                    File.Delete(destinationConnectionProvider.DatabasePath);
+                
+                var file = File.Create(destinationConnectionProvider.DatabasePath);
+                file.Close();
+            }
+            
+            var destinationConnection = await destinationConnectionProvider.GetOpenConnection().ConfigureAwait(false);
+            var destination = (SqliteConnection) destinationConnection;
+
+            var sourceConnection = await _connectionProvider.GetOpenConnection();
+            var source = (SqliteConnection) sourceConnection;
+            
+            source.BackupDatabase(destination);
+        }
     }
 }

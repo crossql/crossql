@@ -87,6 +87,7 @@ namespace crossql.tests.Integration
         [TestCaseSource(nameof(DbProviders))]
         public async Task Should_Perform_Faster_When_Run_In_Transaction(IDbProvider db)
         {
+            if (db is sqlite.DbProvider sqlite && sqlite.InMemory) return;
             Trace.WriteLine(TraceObjectGraphInfo(db));
 
             // setup
