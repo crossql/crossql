@@ -18,7 +18,7 @@ namespace crossql.sqlite
         private readonly string _sqliteDatabasePath;
         private IDialect _dialect;
 
-        public DbProvider():this(new DbConnectionProvider("database.sqlite3")) { }
+        public DbProvider():this(DbConnectionProvider.Default) { }
         public DbProvider(IDbConnectionProvider connectionProvider) : this(connectionProvider, null) { }
 
         public DbProvider(IDbConnectionProvider connectionProvider,  Action<DbConfiguration> config) : base(config)
@@ -132,21 +132,22 @@ namespace crossql.sqlite
             }
         }
 
-        protected override TransactionableBase GetNewTransaction() => new Transactionable(_connectionProvider, Dialect);
-
-        private static SqliteParameter CreateParameter(KeyValuePair<string, object> parameter) => new SqliteParameter(parameter.Key,
-            parameter.Value ?? DBNull.Value);
-
+        /// <summary>
+        /// Backup your current database to a new one
+        /// </summary>
+        /// <param name="destinationConnectionProvider">Destination db connection provider</param>
+        /// <returns></returns>
+        /// <exception cref="NotSupportedException">Thrown when attempting to back up to an in-memory database</exception>
         public async Task BackupDatabase(DbConnectionProvider destinationConnectionProvider)
         {
-            if (!destinationConnectionProvider.InMemory)
-            {
-                if(File.Exists(destinationConnectionProvider.DatabasePath))
-                    File.Delete(destinationConnectionProvider.DatabasePath);
-                
-                var file = File.Create(destinationConnectionProvider.DatabasePath);
-                file.Close();
-            }
+            if(destinationConnectionProvider.InMemory)
+                throw new NotSupportedException("You cannot backup to an in-memory database.");
+           
+            if(File.Exists(destinationConnectionProvider.DatabasePath))
+                File.Delete(destinationConnectionProvider.DatabasePath);
+            
+            var file = File.Create(destinationConnectionProvider.DatabasePath);
+            file.Close();
             
             var destinationConnection = await destinationConnectionProvider.GetOpenConnection().ConfigureAwait(false);
             var destination = (SqliteConnection) destinationConnection;
@@ -163,5 +164,10 @@ namespace crossql.sqlite
         {
             _connectionProvider?.Dispose();
         }
+
+        protected override TransactionableBase GetNewTransaction() => new Transactionable(_connectionProvider, Dialect);
+
+        private static SqliteParameter CreateParameter(KeyValuePair<string, object> parameter) => new SqliteParameter(parameter.Key,
+            parameter.Value ?? DBNull.Value);
     }
 }
