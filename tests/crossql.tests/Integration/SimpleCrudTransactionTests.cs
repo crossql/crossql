@@ -87,42 +87,54 @@ namespace crossql.tests.Integration
         [TestCaseSource(nameof(DbProviders))]
         public async Task Should_Perform_Faster_When_Run_In_Transaction(IDbProvider db)
         {
-            if (db is sqlite.DbProvider sqlite && sqlite.InMemory) return;
+            var firstLoop = 1000;
+            var secondLoop = 2000;
+            const int secondIndexStart = 1010;
+            var expectedVehicleCount = 1980;
+            
+            // make sqlite work harder because we also do an in memory test
+            if (db is sqlite.DbProvider)
+            {
+                firstLoop = 10000;
+                secondLoop = 20000;
+                expectedVehicleCount = 19990;
+            };
+            
             Trace.WriteLine(TraceObjectGraphInfo(db));
-
+        
             // setup
             var carWatch = new Stopwatch();
             var bikeWatch = new Stopwatch();
-
+        
             // transaction test
             var car = AutomobileFixture.GetCar();
             carWatch.Start();
             await db.RunInTransaction(async trans =>
             {
-                for (var i = 10; i < 1000; i++) // 990 records
+                for (var i = 10; i < firstLoop; i++) 
                 {
                     car.Vin = i.ToString();
                     await trans.CreateOrUpdate(car);
                 }
             });
             carWatch.Stop();
-
+        
             // non transaction test
             var motorcycle = AutomobileFixture.GetMotorcycle();
             bikeWatch.Start();
-            for (var i = 1010; i < 2000; i++) // 990 records
+            for (var i = secondIndexStart; i < secondLoop; i++) 
             {
                 motorcycle.Vin = i.ToString();
                 await db.CreateOrUpdate(motorcycle);
             }
-
+        
             bikeWatch.Stop();
             carWatch.ElapsedTicks.Should().BeLessThan(bikeWatch.ElapsedTicks);
-
+        
             // assert record count
             var vehicleCount = (await db.Query<Automobile>().ToListAsync()).Count;
-            vehicleCount.Should().Be(1980);
-
+            vehicleCount.Should().Be(expectedVehicleCount);
+        
             Trace.WriteLine($"Non Transactionable: {bikeWatch.Elapsed:hh\\:mm\\:ss} \t(Ticks {bikeWatch.ElapsedTicks})");
             Trace.WriteLine($"Transactionable: {carWatch.Elapsed:hh\\:mm\\:ss} \t\t(Ticks {carWatch.ElapsedTicks})");
         }

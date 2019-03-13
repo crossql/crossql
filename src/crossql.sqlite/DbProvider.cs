@@ -85,9 +85,12 @@ namespace crossql.sqlite
                 {
                     result = readerMapper(reader);
                 }
-                
-                if(!_connectionProvider.InMemory)
+
+                if (!_connectionProvider.InMemory)
+                {
+                    connection.Close();
                     connection.Dispose();
+                }
 
                 return result;
             }
@@ -118,8 +121,11 @@ namespace crossql.sqlite
                     return (TKey) (object) DateTimeHelper.MinSqlValue;
                 }
 
-                if(!_connectionProvider.InMemory)
+                if (!_connectionProvider.InMemory)
+                {
+                    connection.Close();
                     connection.Dispose();
+                }
                 
                 return (TKey) result;
             }
