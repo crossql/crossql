@@ -14,6 +14,7 @@ namespace crossql.sqlite
         private static readonly Func<string, string> _inMemoryDbPath = s => s.ToLowerInvariant().Equals("file::memory:", StringComparison.OrdinalIgnoreCase) ? $"{s}?cache=shared" : s;
         private readonly string _connectionString;
         private SqliteConnection _connection;
+        internal static DbConnectionProvider Default => new DbConnectionProvider("database.sqlite3");
 
         /// <inheritdoc />
         /// <summary>
