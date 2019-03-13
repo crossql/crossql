@@ -12,12 +12,13 @@ using Microsoft.Data.Sqlite;
 
 namespace crossql.sqlite
 {
-    public class DbProvider : DbProviderBase
+    public class DbProvider : DbProviderBase, IDisposable
     {
         private readonly DbConnectionProvider _connectionProvider;
         private readonly string _sqliteDatabasePath;
         private IDialect _dialect;
 
+        public DbProvider():this(new DbConnectionProvider("database.sqlite3")) { }
         public DbProvider(IDbConnectionProvider connectionProvider) : this(connectionProvider, null) { }
 
         public DbProvider(IDbConnectionProvider connectionProvider,  Action<DbConfiguration> config) : base(config)
@@ -156,6 +157,11 @@ namespace crossql.sqlite
             source.BackupDatabase(destination);
             destination.Close();
             destination.Dispose();
+        }
+
+        public void Dispose()
+        {
+            _connectionProvider?.Dispose();
         }
     }
 }
