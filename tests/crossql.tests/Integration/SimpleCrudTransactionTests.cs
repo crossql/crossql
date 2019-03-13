@@ -98,7 +98,7 @@ namespace crossql.tests.Integration
                 firstLoop = 10000;
                 secondLoop = 20000;
                 expectedVehicleCount = 19990;
-            };
+            }
             
             Trace.WriteLine(TraceObjectGraphInfo(db));
         
