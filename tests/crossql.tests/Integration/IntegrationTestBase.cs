@@ -4,7 +4,6 @@ using System.Configuration;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using crossql.Config;
-using crossql.Extensions;
 using crossql.Migrations;
 using crossql.sqlite;
 using crossql.tests.Helpers.Migrations;
@@ -34,7 +33,7 @@ namespace crossql.tests.Integration
         };
 
         private static IDbProvider SqliteInMemory => _sqliteInMemory ?? (_sqliteInMemory = new SqliteDbProvider(new SqliteDbConnectionProvider(
-            ":memory:", SqliteSettings.Default)));
+            "file::memory:", SqliteSettings.Default)));
 
         private static IDbProvider _sqliteInMemory;
 
