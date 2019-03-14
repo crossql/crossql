@@ -159,6 +159,22 @@ namespace crossql.sqlite
             destination.Close();
             destination.Dispose();
         }
+        
+        public async Task RunInMemoryTransaction(Func<ITransactionable, Task> transaction)
+        {
+            var memoryDbConnectionProvider = new DbConnectionProvider(":memory:");
+            var memoryConnection = await memoryDbConnectionProvider.GetOpenConnection();
+            var memoryDbProvider = new DbProvider(memoryDbConnectionProvider);
+            var currentConnection = await _connectionProvider.GetOpenConnection();
+            var currentSqliteConnection = (SqliteConnection) currentConnection;
+            
+            currentSqliteConnection.BackupDatabase((SqliteConnection)memoryConnection);
+
+            await memoryDbProvider.RunInTransaction(transaction);
+
+            _connectionProvider.Dispose();
+            await memoryDbProvider.BackupDatabase(_connectionProvider);
+        }
 
         public void Dispose()
         {
