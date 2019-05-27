@@ -17,7 +17,6 @@ namespace crossql
         private readonly IDialect _dialect;
 
         private readonly string _tableName;
-        private string _customDataType;
 
         public Column(IDialect dialect, string name, Type type, string tableName, int precision)
         {
@@ -124,17 +123,8 @@ namespace crossql
             return this;
         }
 
-        public Column OverrideDataType(string dataType)
-        {
-            _customDataType = dataType;
-            return this;
-        }
-
         private string GetDataType(Type type, int precision)
         {
-            if (!string.IsNullOrEmpty(_customDataType))
-                return _customDataType;
-
             if (CustomTypes.TryGetValue(type, out var customResult))
                 return customResult;
 
