@@ -13,6 +13,8 @@ namespace crossql
 {
     public abstract class DbProviderBase : IDbProvider
     {
+        protected IDialect _Dialect;
+        
         protected DbProviderBase( Action<DbConfiguration> config)
         {
             var dbConfig = new DbConfiguration(this);
@@ -214,5 +216,10 @@ namespace crossql
         }
 
         protected abstract TransactionableBase GetNewTransaction();
+
+        internal void OverrideDialect(IDialect customDialect)
+        {
+            _Dialect = customDialect;
+        }
     }
 }
