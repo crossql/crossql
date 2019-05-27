@@ -9,7 +9,7 @@ namespace crossql
 {
     public class Column
     {
-        public static IList<KeyValuePair<Type, string>> CustomTypes = new List<KeyValuePair<Type, string>>();
+        public static Dictionary<Type, string> CustomTypes = new Dictionary<Type, string>();
         public readonly IList<IConstraint> Constraints;
         public readonly string Name;
         public readonly int Precision;
@@ -17,6 +17,7 @@ namespace crossql
         private readonly IDialect _dialect;
 
         private readonly string _tableName;
+        private string _customDataType;
 
         public Column(IDialect dialect, string name, Type type, string tableName, int precision)
         {
@@ -30,7 +31,7 @@ namespace crossql
 
         public Column AsCustomType(string dialectValue)
         {
-            CustomTypes.Add(new KeyValuePair<Type, string>(Type, dialectValue));
+            CustomTypes.Add(Type, dialectValue);
             return this;
         }
 
@@ -123,8 +124,20 @@ namespace crossql
             return this;
         }
 
+        public Column OverrideDataType(string dataType)
+        {
+            _customDataType = dataType;
+            return this;
+        }
+
         private string GetDataType(Type type, int precision)
         {
+            if (!string.IsNullOrEmpty(_customDataType))
+                return _customDataType;
+
+            if (CustomTypes.TryGetValue(type, out var customResult))
+                return customResult;
+
             if (type == typeof(string) && precision == 0)
                 return _dialect.MaxString;
 
@@ -169,10 +182,6 @@ namespace crossql
 
             if (type == typeof(TimeSpan))
                 return _dialect.TimeSpan;
-
-            foreach (var customType in CustomTypes)
-                if (type == customType.Key)
-                    return customType.Value;
 
             throw new DataTypeNotSupportedException();
         }
