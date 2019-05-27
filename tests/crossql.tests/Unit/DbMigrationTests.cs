@@ -218,26 +218,6 @@ namespace crossql.tests.Unit
         }
 
         [Test]
-        public void ShouldCreateATableWithAnOverriddenDataType()
-        {
-            // Setup
-            string expectedDDL = "CREATE TABLE [Test] (" + _nl +
-                                 "[MobileCreatedAt] DATETIME );";
-
-            var dialect = new SqlServerDialect();
-            var database = new Database("MyDatabase", dialect);
-
-            var testTable = database.AddTable("Test");
-            testTable.AddColumn("MobileCreatedAt", typeof (DateTime)).OverrideDataType("DATETIME");
-
-            // Execute
-            var actualDDL = database.ToString();
-
-            // Assert
-            Assert.AreEqual(expectedDDL, actualDDL);
-        }
-
-        [Test]
         public void ShouldCreateATableWithAnOverriddenDataTypeViaCustomDialect()
         {
             // Setup
