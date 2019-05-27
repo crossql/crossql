@@ -9,7 +9,7 @@ namespace crossql
 {
     public class Column
     {
-        public static Dictionary<Type, string> CustomTypes = new Dictionary<Type, string>();
+        public static readonly Dictionary<Type, string> CustomTypes = new Dictionary<Type, string>();
         public readonly IList<IConstraint> Constraints;
         public readonly string Name;
         public readonly int Precision;
@@ -30,7 +30,7 @@ namespace crossql
 
         public Column AsCustomType(string dialectValue)
         {
-            CustomTypes.Add(Type, dialectValue);
+            CustomTypes[Type] = dialectValue;
             return this;
         }
 
