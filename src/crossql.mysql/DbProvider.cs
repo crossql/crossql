@@ -15,7 +15,6 @@ namespace crossql.mysql
     {
         private static string _useStatement;
         private readonly IDbConnectionProvider _connectionProvider;
-        private IDialect _dialect;
 
         public DbProvider(IDbConnectionProvider connectionProvider, string databaseName) : this(connectionProvider, databaseName, null) { }
 
@@ -26,7 +25,7 @@ namespace crossql.mysql
             _useStatement = string.Format(Dialect.UseDatabase, databaseName);
         }
 
-        public sealed override IDialect Dialect => _dialect ?? (_dialect = new MySqlDialect());
+        public sealed override IDialect Dialect => _Dialect ?? (_Dialect = new MySqlDialect());
 
         public override async Task<bool> CheckIfDatabaseExists() =>
             await ExecuteScalar<int>("", string.Format(Dialect.CheckDatabaseExists, DatabaseName)).ConfigureAwait(false) == 1;
