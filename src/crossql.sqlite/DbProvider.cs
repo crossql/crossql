@@ -16,7 +16,6 @@ namespace crossql.sqlite
     {
         private readonly DbConnectionProvider _connectionProvider;
         private readonly string _sqliteDatabasePath;
-        private IDialect _dialect;
 
         public DbProvider():this(DbConnectionProvider.Default) { }
         public DbProvider(IDbConnectionProvider connectionProvider) : this(connectionProvider, null) { }
@@ -28,7 +27,7 @@ namespace crossql.sqlite
         }
 
         public bool InMemory => _connectionProvider.InMemory;
-        public sealed override IDialect Dialect => _dialect ?? (_dialect = new SqliteDialect());
+        public sealed override IDialect Dialect => _Dialect ?? (_Dialect = new SqliteDialect());
 
         public override Task<bool> CheckIfDatabaseExists() 
             => Task.FromResult(_connectionProvider.InMemory || File.Exists(_sqliteDatabasePath));

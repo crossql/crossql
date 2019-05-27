@@ -22,6 +22,5 @@ namespace crossql
         IDbQuery<TModel> Query<TModel>() where TModel : class, new();
         Task RunInTransaction(Func<ITransactionable,Task> dbChange);
         IDbScalar<TModel, TReturnType> Scalar<TModel, TReturnType>(Expression<Func<TModel, TReturnType>> propertyExpression) where TModel : class, new();
-
     }
 }

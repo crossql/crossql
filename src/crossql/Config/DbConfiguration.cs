@@ -16,5 +16,11 @@ namespace crossql.Config
             var tableOptions = new TableOptions<TModel>();
             func(tableOptions);
         }
+
+        public void OverrideDialect(IDialect customDialect)
+        {
+            var provider =  _provider as DbProviderBase;
+            provider?.OverrideDialect(customDialect);
+        }
     }
 }
