@@ -277,5 +277,25 @@ namespace crossql.tests.Unit
             // Assert
             Assert.AreEqual(expectedDDL, actualDDL);
         }
+
+        [Test]
+        public void ShouldCreateATableWithAnOverriddenDataTypeViaCustomDialectHardCoded()
+        {
+            // Setup
+            string expectedDDL = "CREATE TABLE [Test] (" + _nl +
+                                 "[MobileCreatedAt] DATETIME );";
+
+            var dialect = new SqliteDialect();
+            var database = new Database("MyDatabase", dialect);
+
+            var testTable = database.AddTable("Test");
+            testTable.AddColumn("MobileCreatedAt", typeof (DateTime)).AsCustomType("DATETIME");;
+
+            // Execute
+            var actualDDL = database.ToString();
+
+            // Assert
+            Assert.AreEqual(expectedDDL, actualDDL);
+        }
     }
 }
